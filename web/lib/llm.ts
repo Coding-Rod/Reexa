@@ -29,9 +29,9 @@ export async function chatJSON<T>(model: string, messages: Msg[]): Promise<T> {
 
 // Re-check questions are generated per request and served without their answer.
 // The answer travels back with the client inside an AES-GCM token only the server can open.
-const KEY = createHash("sha256")
-  .update(process.env.RECHECK_SECRET || process.env.OPENROUTER_API_KEY || "dev-only-recheck-secret")
-  .digest();
+const SECRET = process.env.RECHECK_SECRET || process.env.OPENROUTER_API_KEY;
+if (!SECRET && process.env.NODE_ENV === "production") throw new Error("RECHECK_SECRET must be set in production");
+const KEY = createHash("sha256").update(SECRET || "dev-only-recheck-secret").digest();
 
 export function seal(obj: unknown): string {
   const iv = randomBytes(12);
