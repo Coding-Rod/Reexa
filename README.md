@@ -130,4 +130,10 @@ Built with [Spec Kit](https://github.com/github/spec-kit) (spec-driven developme
 
 ## Run
 
-TBD.
+
+
+## Draft app
+
+- `worker/`: Python pipeline (PDF → outline → script, notes and quiz → AI jury → voiceover + captions → ManimGL video). Run: `conda run -n 3b1b python -m worker.pipeline <pdf> --max-sections 1` (`LLM_STUB=1` without an API key).
+- `web/`: Next.js app (library, player with captions, transcript, AI notes and student notes, check with diagnosis). Run: `cd web && pnpm dev`.
+- Config: copy `.env.example` to `.env.local` and set `OPENROUTER_API_KEY`.
