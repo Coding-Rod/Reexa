@@ -1,6 +1,7 @@
 "use client";
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth";
-import { LogIn, LogOut } from "lucide-react";
+import { LogIn, LogOut, UserRoundIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/Lang";
 import { auth, authEnabled, google } from "@/lib/firebase";
@@ -48,6 +49,9 @@ export default function AuthButton() {
         </button>
         {open && (
           <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-border bg-surface p-1 shadow-lg">
+            <Link href="/profile" onClick={() => setOpen(false)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-background">
+              <UserRoundIcon className="h-4 w-4" aria-hidden /> {t.nav.profile}
+            </Link>
             <button type="button" onClick={() => signOut(auth!)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-background">
               <LogOut className="h-4 w-4" aria-hidden /> {t.auth.signOut}
             </button>
