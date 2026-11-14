@@ -76,7 +76,7 @@ async function open(mode) {
 }
 
 app.whenReady().then(() => {
-  win = new BrowserWindow({ width: 1280, height: 860, autoHideMenuBar: true, backgroundColor: "#0f1d3a", webPreferences: { contextIsolation: true, sandbox: true } });
+  win = new BrowserWindow({ width: 1280, height: 860, icon: path.join(__dirname, "build", "icon.png"), autoHideMenuBar: true, backgroundColor: "#0f1d3a", webPreferences: { contextIsolation: true, sandbox: true } });
   // External links go to the system browser, never inside the app window.
   win.webContents.setWindowOpenHandler(({ url }) => {
     // Firebase sign-in popups must stay in-app so the result returns to this window.

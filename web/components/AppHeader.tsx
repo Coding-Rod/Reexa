@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AuthButton from "@/components/AuthButton";
+import Logo from "@/components/Logo";
 import { authEnabled } from "@/lib/firebase";
 import { useT } from "@/components/Lang";
 import { fmtTime, loadLastLesson } from "@/lib/store";
@@ -86,9 +87,7 @@ export default function AppHeader() {
       <header className="sticky top-0 z-40 border-b border-border bg-surface">
         <div className="mx-auto flex h-[var(--header-h)] max-w-[1600px] items-center gap-2 px-3 sm:gap-4 sm:px-4">
           <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label={t.nav.home}>
-            <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-extrabold text-accent-fg">
-              Re
-            </span>
+            <Logo className="size-8 text-accent" />
             <span className="hidden sm:inline">Reexa</span>
           </Link>
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import AuthButton, { useAuth } from "@/components/AuthButton";
+import Logo from "@/components/Logo";
 import { useT } from "@/components/Lang";
 import { authEnabled } from "@/lib/firebase";
 
@@ -17,9 +18,7 @@ function SignIn() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-16 text-center">
-      <span aria-hidden className="grid size-14 place-items-center rounded-2xl bg-accent text-xl font-extrabold text-accent-fg">
-        Re
-      </span>
+      <Logo className="size-16 text-accent" />
       <h1 className="mt-5 text-3xl font-semibold tracking-tight">{t.signin.title}</h1>
       <p className="mt-3 text-muted">{t.signin.subtitle}</p>
       <div className="mt-8">{authEnabled ? <AuthButton /> : <Link href="/" className="text-accent underline">{t.nav.courses}</Link>}</div>
