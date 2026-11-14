@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
 import AppHeader from "@/components/AppHeader";
+import AuthGate from "@/components/AuthGate";
 import { LangProvider } from "@/components/Lang";
 import { dicts } from "@/lib/i18n";
 import { getLang } from "@/lib/lang";
@@ -25,7 +27,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Suspense fallback={<div className="h-[var(--header-h)] border-b border-border bg-surface" />}>
             <AppHeader />
           </Suspense>
-          {children}
+          <AuthGate>{children}</AuthGate>
+          <Toaster
+            position="bottom-center"
+            closeButton
+            style={{ "--normal-bg": "var(--surface)", "--normal-text": "var(--foreground)", "--normal-border": "var(--border)" } as React.CSSProperties}
+          />
         </LangProvider>
       </body>
     </html>

@@ -56,6 +56,12 @@ const es: Dict = {
     themeLabel: (theme, next) => `Tema: ${theme}. Cambiar a ${next}`,
     themeTitle: (theme) => `Tema: ${theme}`,
   },
+  signin: {
+    title: "Inicia sesión en Reexa",
+    subtitle: "Tus diapositivas se convierten en lecciones narradas con subtítulos, apuntes y comprobaciones que encuentran lo que no entendiste.",
+    privacy: "Solo usamos el nombre y la foto de tu cuenta de Google. Tus apuntes y tu progreso se quedan en tu navegador.",
+    checking: "Comprobando tu sesión…",
+  },
   auth: {
     signIn: "Iniciar sesión con Google",
     signOut: "Cerrar sesión",
@@ -275,6 +281,28 @@ const es: Dict = {
     goTo: (title) => `Ir a ${title}`,
     creating: "Creando…",
     create: "Crear el curso y generar las lecciones",
+  },
+  toast: {
+    confirm: "Confirmar",
+    cancel: "Cancelar",
+    startedOver: "Empezaste de nuevo.",
+  },
+  download: {
+    title: "Descarga Reexa",
+    intro: "Usa Reexa en el navegador, instálala en tu teléfono o descarga la app de escritorio.",
+    desktop: "App de escritorio",
+    desktopNote: "Abre tu biblioteca de Reexa en su propia ventana. Si la ejecutas desde el repositorio con Ollama instalado, el modo local mantiene el tutor en tu portátil.",
+    windows: "Descargar para Windows",
+    windowsHint: "64 bits · .zip, descomprime y ejecuta Reexa.exe",
+    linux: "Descargar para Linux",
+    linuxHint: "64 bits · AppImage, márcalo como ejecutable y ábrelo",
+    mac: "macOS",
+    soon: "Próximamente",
+    mobile: "Teléfono y tableta",
+    mobileNote: "Instala la app web en tu pantalla de inicio. Se abre a pantalla completa, como una app nativa.",
+    ios: "iPhone / iPad (Safari): toca Compartir y luego Añadir a pantalla de inicio.",
+    android: "Android (Chrome): abre el menú ⋮ y luego Instalar app o Añadir a pantalla de inicio.",
+    native: "Apps móviles nativas: trabajo futuro.",
   },
 };
 

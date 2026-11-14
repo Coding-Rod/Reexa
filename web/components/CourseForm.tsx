@@ -1,4 +1,5 @@
 "use client";
+import { confirmToast } from "@/lib/toast";
 import { FileUpIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -57,19 +58,21 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
   }, [restored, done, tab, title, examDate, level, language, files, missingFiles]);
 
   function startOver() {
-    if (!confirm(t.courseForm.startOverConfirm)) return;
-    clearDraft("course");
-    setTab("course");
-    setTitle("");
-    setExamDate("");
-    setLevel("beginner");
-    setLanguage("");
-    setFiles([]);
-    setMissingFiles([]);
-    setError("");
-    setLog([]);
-    setDone(false);
+    confirmToast(t.courseForm.startOverConfirm, t.toast, () => {
+      clearDraft("course");
+      setTab("course");
+      setTitle("");
+      setExamDate("");
+      setLevel("beginner");
+      setLanguage("");
+      setFiles([]);
+      setMissingFiles([]);
+      setError("");
+      setLog([]);
+      setDone(false);
+    }, t.toast.startedOver);
   }
+
 
   const profileOk = profile?.armor?.verdict === "pass";
   const slug = courseSlug(title);

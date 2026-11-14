@@ -56,6 +56,12 @@ const pt: Dict = {
     themeLabel: (theme, next) => `Tema: ${theme}. Mudar para ${next}`,
     themeTitle: (theme) => `Tema: ${theme}`,
   },
+  signin: {
+    title: "Entrar no Reexa",
+    subtitle: "Seus slides viram aulas narradas com legendas, anotações e verificações que encontram o que você não entendeu.",
+    privacy: "Usamos só o nome e a foto da sua conta Google. Suas anotações e seu progresso ficam no seu navegador.",
+    checking: "Verificando sua sessão…",
+  },
   auth: {
     signIn: "Entrar com o Google",
     signOut: "Sair",
@@ -275,6 +281,28 @@ const pt: Dict = {
     goTo: (title) => `Ir para ${title}`,
     creating: "Criando…",
     create: "Criar o curso e gerar as aulas",
+  },
+  toast: {
+    confirm: "Confirmar",
+    cancel: "Cancelar",
+    startedOver: "Recomeçou do zero.",
+  },
+  download: {
+    title: "Obter o Reexa",
+    intro: "Use o Reexa no navegador, instale-o no celular ou baixe o app para desktop.",
+    desktop: "App para desktop",
+    desktopNote: "Abre sua biblioteca Reexa em uma janela própria. Executado a partir do repositório com o Ollama instalado, o modo local mantém o tutor no seu notebook.",
+    windows: "Baixar para Windows",
+    windowsHint: "64 bits · .zip, descompacte e execute Reexa.exe",
+    linux: "Baixar para Linux",
+    linuxHint: "64 bits · AppImage, torne executável e execute",
+    mac: "macOS",
+    soon: "Em breve",
+    mobile: "Celular e tablet",
+    mobileNote: "Instale o app web na tela inicial. Ele abre em tela cheia, como um app nativo.",
+    ios: "iPhone / iPad (Safari): toque em Compartilhar e depois em Adicionar à Tela de Início.",
+    android: "Android (Chrome): abra o menu ⋮ e depois Instalar app ou Adicionar à tela inicial.",
+    native: "Apps móveis nativos: trabalho futuro.",
   },
 };
 

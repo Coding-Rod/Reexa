@@ -5,11 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/Lang";
 import { auth, authEnabled, google } from "@/lib/firebase";
 
-export function useUser() {
-  const [user, setUser] = useState<User | null>(null);
-  useEffect(() => (auth ? onAuthStateChanged(auth, setUser) : undefined), []);
-  return user;
+/** Firebase user plus whether the first auth check finished (avoids redirecting before Firebase restores a session). */
+export function useAuth() {
+  const [state, setState] = useState<{ user: User | null; ready: boolean }>({ user: null, ready: !auth });
+  useEffect(() => (auth ? onAuthStateChanged(auth, (user) => setState({ user, ready: true })) : undefined), []);
+  return state;
 }
+
+export const useUser = () => useAuth().user;
 
 export default function AuthButton() {
   const t = useT();

@@ -1,6 +1,5 @@
 "use client";
 import { LanguagesIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { dicts, LANG_COOKIE, type Lang } from "@/lib/i18n";
 import { LANGUAGES } from "@/lib/profile";
@@ -14,9 +13,9 @@ export const LangProvider = ({ lang, children }: { lang: Lang; children: React.R
 export const useLang = () => useContext(LangContext);
 export const useT = () => dicts[useLang()];
 
-/** Persist the interface language (cookie for the server render, localStorage for the profile) and re-render. */
+/** Persist the interface language (cookie for the server render, localStorage for the profile) and reload.
+ *  ponytail: full reload, not router.refresh(): the soft refresh kept stale client strings. */
 export function useSetLang() {
-  const router = useRouter();
   return (lang: Lang) => {
     document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax`;
     try {
@@ -24,7 +23,7 @@ export function useSetLang() {
     } catch {
       /* storage blocked: the cookie is enough */
     }
-    router.refresh();
+    window.location.reload();
   };
 }
 

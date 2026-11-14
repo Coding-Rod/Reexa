@@ -1,37 +1,20 @@
 import { Apple, Download, Monitor, Smartphone } from "lucide-react";
+import type { Dict } from "@/lib/i18n";
+import { getT } from "@/lib/lang";
 
-// ponytail: English only for now; the i18n pass moves these into lib/i18n.
-const S = {
-  title: "Get Reexa",
-  intro: "Use Reexa in the browser, install it on your phone, or download the desktop app.",
-  desktop: "Desktop app",
-  desktopNote:
-    "Opens your Reexa library in its own window. When run from the source repo with Ollama installed, a local mode keeps the tutor on your laptop.",
-  windows: "Download for Windows",
-  windowsHint: "64-bit · .zip, unzip and run Reexa.exe",
-  linux: "Download for Linux",
-  linuxHint: "64-bit · AppImage, mark as executable and run",
-  mac: "macOS",
-  soon: "Coming soon",
-  mobile: "Phone and tablet",
-  mobileNote: "Install the web app on your home screen. It opens full screen, like a native app.",
-  ios: "iPhone / iPad (Safari): tap Share, then Add to Home Screen.",
-  android: "Android (Chrome): open the ⋮ menu, then Install app or Add to Home screen.",
-  native: "Native mobile apps: future work.",
-};
 
 const WIN = process.env.NEXT_PUBLIC_DESKTOP_URL_WIN;
 const LINUX = process.env.NEXT_PUBLIC_DESKTOP_URL_LINUX;
 
-export const metadata = { title: S.title };
+export const generateMetadata = async () => ({ title: (await getT()).download.title });
 
-function DownloadButton({ href, label, hint }: { href?: string; label: string; hint: string }) {
+function DownloadButton({ href, label, hint, soon }: { href?: string; label: string; hint: string; soon: string }) {
   const body = (
     <>
       <span className="flex items-center gap-2 font-medium">
         <Download className="h-4 w-4" aria-hidden /> {label}
       </span>
-      <span className="text-xs opacity-80">{href ? hint : S.soon}</span>
+      <span className="text-xs opacity-80">{href ? hint : soon}</span>
     </>
   );
   return href ? (
@@ -45,7 +28,8 @@ function DownloadButton({ href, label, hint }: { href?: string; label: string; h
   );
 }
 
-export default function DownloadPage() {
+export default async function DownloadPage() {
+  const S: Dict["download"] = (await getT()).download;
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12">
       <h1 className="text-3xl font-semibold tracking-tight">{S.title}</h1>
@@ -57,8 +41,8 @@ export default function DownloadPage() {
         </h2>
         <p className="mt-1 text-sm text-muted">{S.desktopNote}</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <DownloadButton href={WIN} label={S.windows} hint={S.windowsHint} />
-          <DownloadButton href={LINUX} label={S.linux} hint={S.linuxHint} />
+          <DownloadButton href={WIN} label={S.windows} hint={S.windowsHint} soon={S.soon} />
+          <DownloadButton href={LINUX} label={S.linux} hint={S.linuxHint} soon={S.soon} />
           <span aria-disabled="true" className="flex flex-col items-start gap-1 rounded-lg border border-border px-4 py-3 text-muted">
             <span className="flex items-center gap-2 font-medium">
               <Apple className="h-4 w-4" aria-hidden /> {S.mac}

@@ -1,4 +1,5 @@
 "use client";
+import { confirmToast } from "@/lib/toast";
 import { signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
 import AuthButton, { useUser } from "@/components/AuthButton";
@@ -28,7 +29,6 @@ export default function ProfileForm() {
   const [armor, setArmor] = useState<Armor | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
-  const [cleared, setCleared] = useState(false);
   const [tab, setTab] = useState<Tab>("preferences");
   const [restored, setRestored] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -60,12 +60,13 @@ export default function ProfileForm() {
   }, [restored, saved, tab, uiLang, language, styles, instructions]);
 
   function startOver() {
-    if (!confirm(t.profile.startOverConfirm)) return;
-    clearDraft("profile");
-    hydrate(false);
-    setErrors([]);
-    setSaved(false);
-    setTab("preferences");
+    confirmToast(t.profile.startOverConfirm, t.toast, () => {
+      clearDraft("profile");
+      hydrate(false);
+      setErrors([]);
+      setSaved(false);
+      setTab("preferences");
+    }, t.toast.startedOver);
   }
 
   async function save() {
@@ -271,17 +272,11 @@ export default function ProfileForm() {
           </ul>
           <button
             type="button"
-            onClick={() => {
-              if (confirm(t.profile.clearConfirm)) {
-                clearLocalData();
-                setCleared(true);
-              }
-            }}
+            onClick={() => confirmToast(t.profile.clearConfirm, t.toast, clearLocalData, t.profile.cleared)}
             className="rounded-lg border border-bad/50 px-4 py-2 text-bad hover:bg-bad/10"
           >
             {t.profile.clear}
           </button>
-          {cleared && <p role="status" className="text-good">{t.profile.cleared}</p>}
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={() => setTab("instructions")} className={ghost}>
               {t.common.back}
