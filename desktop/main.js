@@ -76,7 +76,7 @@ async function open(mode) {
 }
 
 app.whenReady().then(() => {
-  win = new BrowserWindow({ width: 1280, height: 860, webPreferences: { contextIsolation: true, sandbox: true } });
+  win = new BrowserWindow({ width: 1280, height: 860, autoHideMenuBar: true, backgroundColor: "#0f1d3a", webPreferences: { contextIsolation: true, sandbox: true } });
   // External links go to the system browser, never inside the app window.
   win.webContents.setWindowOpenHandler(({ url }) => {
     // Firebase sign-in popups must stay in-app so the result returns to this window.
@@ -84,16 +84,9 @@ app.whenReady().then(() => {
     shell.openExternal(url);
     return { action: "deny" };
   });
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
-      { label: "Mode", submenu: [
-        { label: "Online", click: () => open("online") },
-        { label: "Local (Ollama)", click: () => open("local") },
-      ] },
-      { role: "viewMenu" },
-      { role: "windowMenu" },
-    ]),
-  );
+  // No File/Edit/View bar: the app has its own navigation. Mode is chosen at launch
+  // (`pnpm start` = online, `pnpm local` = Ollama). Without a menu there are no Ctrl+R / devtools shortcuts.
+  Menu.setApplicationMenu(null);
   open(process.env.REEXA_MODE === "local" ? "local" : "online");
 });
 
