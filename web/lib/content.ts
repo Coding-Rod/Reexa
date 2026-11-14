@@ -1,7 +1,8 @@
 import "server-only";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
-import type { Manifest, PublicSection, QuizItem, Section } from "./types";
+import type { Explain, Manifest, PublicSection, QuizItem, Section } from "./types";
 
 export const CONTENT_DIR = path.join(process.cwd(), "public", "content");
 export const REPO_ROOT = path.resolve(process.cwd(), "..");
@@ -44,4 +45,37 @@ export const publicQuestion = (q: QuizItem) => ({
 
 export function toPublic(s: Section): PublicSection {
   return { ...s, quiz: s.quiz.map(publicQuestion) };
+}
+
+// Same cache key as worker/explain.py: sha1(section|question|misconception|language)[:12].
+export function explainDir(lectureId: string, sectionId: string, questionId: string, misconception: string, language: string) {
+  const key = [sectionId, questionId, misconception.trim().slice(0, 500), language].join("|");
+  const hash = createHash("sha1").update(key).digest("hex").slice(0, 12);
+  return path.join(CONTENT_DIR, lectureId, sectionId, "explain", hash);
+}
+
+export async function readExplain(dir: string): Promise<Explain | null> {
+  try {
+    return JSON.parse(await readFile(path.join(dir, "explain.json"), "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+/** A pre-generated explanation for this question + language, if any (demo / offline path). */
+export async function findCachedExplain(lectureId: string, sectionId: string, questionId: string, language: string) {
+  if (![lectureId, sectionId, questionId].every(isId)) return null;
+  const root = path.join(CONTENT_DIR, lectureId, sectionId, "explain");
+  let dirs: string[] = [];
+  try {
+    dirs = await readdir(root);
+  } catch {
+    return null;
+  }
+  for (const d of dirs) {
+    if (!/^[0-9a-f]{12}$/.test(d)) continue;
+    const e = await readExplain(path.join(root, d));
+    if (e && e.question_id === questionId && e.language === language) return e;
+  }
+  return null;
 }

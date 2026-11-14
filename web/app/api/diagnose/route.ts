@@ -1,4 +1,4 @@
-import { isId, publicQuestion, readSection } from "@/lib/content";
+import { findCachedExplain, isId, publicQuestion, readSection } from "@/lib/content";
 import { chatJSON, JURY_MODEL, LLM_MODEL, llmEnabled, seal, unseal } from "@/lib/llm";
 import { isLanguage, LANGUAGE_EN_NAMES, type Language } from "@/lib/profile";
 import type { Citation, DiagnoseRequest, DiagnoseResponse, Jury, QuizItem, Section } from "@/lib/types";
@@ -46,15 +46,29 @@ export async function POST(req: Request) {
   // Allowlisted only. Student free-text instructions never reach this prompt.
   const language: Language = isLanguage(body.language) ? body.language : "en";
 
+  let out: DiagnoseResponse | null = null;
   if (llmEnabled()) {
     try {
-      const out = await generateWithJury(section, q, chosenIndex, reasoning, correct, language);
-      if (out) return Response.json(out);
+      out = await generateWithJury(section, q, chosenIndex, reasoning, correct, language);
     } catch (e) {
       console.error("diagnose: LLM path failed, using stored content", e);
     }
   }
-  return Response.json(stub(section, q, chosenIndex, correct));
+  out ??= stub(section, q, chosenIndex, correct);
+
+  // Targeted video: only for stored questions (the worker needs the question in section.json).
+  // The misconception travels sealed, so the client cannot inject text into the video prompt.
+  if (out.misconception && !token && section.quiz.some((x) => x.id === q.id)) {
+    let misconception = out.misconception;
+    if (out.source === "stub") {
+      const cached = await findCachedExplain(lectureId, sectionId, q.id, language);
+      if (cached) misconception = out.misconception = cached.misconception;
+      else misconception = "";
+    }
+    if (misconception)
+      out.explainToken = seal({ lectureId, sectionId, questionId: q.id, misconception, language, iat: Date.now() });
+  }
+  return Response.json(out);
 }
 
 // Stored, jury-checked content when no key / LLM_STUB=1 / LLM failure.

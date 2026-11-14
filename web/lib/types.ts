@@ -78,4 +78,19 @@ export type DiagnoseResponse = {
   jury: Jury;
   recheck: PublicQuestion | null;
   source: "llm" | "stub";
+  /** Sealed {lectureId, sectionId, questionId, misconception, language}; present when a targeted video can be made. */
+  explainToken?: string;
+};
+
+export type Explain = {
+  title: string;
+  misconception: string;
+  question_id: string;
+  language: string;
+  video: string;
+  captions: string;
+  duration: number;
+  transcript: { start: number; end: number; text: string }[];
+  citations: Citation[];
+  jury: Jury;
 };

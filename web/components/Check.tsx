@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { CitationChip, JuryBadge } from "@/components/Notes";
 import { updateProgress, loadProfile } from "@/lib/store";
-import type { DiagnoseResponse, Passage, PublicQuestion, PublicSection } from "@/lib/types";
+import type { DiagnoseResponse, Explain, Passage, PublicQuestion, PublicSection } from "@/lib/types";
 
 const MIN_WORDS = 8;
 const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
@@ -188,6 +188,7 @@ function Feedback({ result, passages }: { result: DiagnoseResponse; passages: Pa
         </div>
       )}
       <p>{result.explanation}</p>
+      {result.explainToken && <ExplainVideo token={result.explainToken} passages={passages} />}
       {result.citations.length > 0 && (
         <p className="text-xs text-muted">
           Sources:{" "}
@@ -197,6 +198,77 @@ function Feedback({ result, passages }: { result: DiagnoseResponse; passages: Pa
         </p>
       )}
       {solid && <p className="text-good">Concept closed ✓</p>}
+    </div>
+  );
+}
+
+function ExplainVideo({ token, passages }: { token: string; passages: Passage[] }) {
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [video, setVideo] = useState<(Explain & { cached: boolean }) | null>(null);
+  const [error, setError] = useState("");
+
+  async function load() {
+    setState("loading");
+    setError("");
+    try {
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not load the video.");
+      setVideo(data);
+      setState("idle");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load the video.");
+      setState("error");
+    }
+  }
+
+  if (video)
+    return (
+      <div className="space-y-2 rounded-lg border border-accent/40 p-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+            Made for your mistake · {Math.round(video.duration)} s{video.cached ? " · cached" : ""}
+          </p>
+          <JuryBadge jury={video.jury} />
+        </div>
+        <video controls autoPlay className="w-full rounded-md bg-black" src={video.video}>
+          <track kind="captions" src={video.captions} srcLang={video.language} label="Captions" default />
+        </video>
+        <details className="text-xs text-muted">
+          <summary className="cursor-pointer">Transcript</summary>
+          <p className="mt-1 whitespace-pre-line">{video.transcript.map((t) => t.text).join("\n")}</p>
+        </details>
+        {video.citations.length > 0 && (
+          <p className="text-xs text-muted">
+            Sources:{" "}
+            {video.citations.map((c, i) => (
+              <CitationChip key={i} c={c} passages={passages} />
+            ))}
+          </p>
+        )}
+        <p className="text-xs text-muted">The video explains the idea, not the answer. Try the new question below.</p>
+      </div>
+    );
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={load}
+        disabled={state === "loading"}
+        className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-fg disabled:opacity-60"
+      >
+        {state === "loading" ? "Preparing your video… (up to 2 min if new)" : "▶ Watch a 1-minute video on this misconception"}
+      </button>
+      {error && (
+        <p role="alert" className="mt-1 text-sm text-bad">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
