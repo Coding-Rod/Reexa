@@ -12,6 +12,9 @@ import { clearDraft, loadDraft, loadProfile, saveCourse, saveDraft, uploadLectur
 const TABS = ["course", "language", "materials", "review"] as const;
 type Tab = (typeof TABS)[number];
 const ghost = "rounded-lg border border-border px-4 py-2 hover:border-accent";
+const KINDS = ["slides", "notes", "exams", "exercises", "other"] as const;
+type Kind = (typeof KINDS)[number];
+type Picked = { file: File; kind: Kind };
 type Draft = { tab: Tab; title: string; examDate: string; level: Level; language: Language | ""; fileNames: string[] };
 const kb = (n: number) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`);
 const primary = "ml-auto rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg disabled:opacity-50";
@@ -23,7 +26,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
   const [examDate, setExamDate] = useState("");
   const [level, setLevel] = useState<Level>("beginner");
   const [language, setLanguage] = useState<Language | "">(""); // "" = profile default
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<Picked[]>([]); // all kinds optional, at least one file in total
   const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -52,7 +55,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
   // Autosave on every change (after the draft was restored, so we don't overwrite it with defaults).
   useEffect(() => {
     if (!restored || done) return;
-    const names = files.length ? files.map((f) => f.name) : missingFiles;
+    const names = files.length ? files.map((f) => f.file.name) : missingFiles;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reflects the storage write result
     setDraftSaved(saveDraft("course", { tab, title, examDate, level, language, fileNames: names } satisfies Draft));
   }, [restored, done, tab, title, examDate, level, language, files, missingFiles]);
@@ -84,12 +87,16 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
       setError(t.courseForm.needName);
       return setTab("course");
     }
-    if (files.length && !profileOk) return setError(t.courseForm.needProfile);
+    if (!files.length) {
+      setError(t.courseForm.needFiles);
+      return setTab("materials");
+    }
+    if (!profileOk) return setError(t.courseForm.needProfile);
     setBusy(true);
     const settings = { title: title.trim().slice(0, LIMITS.course), exam_date: examDate || null, level, ...(language ? { language } : {}) };
     saveCourse(slug, settings);
     const out: string[] = [];
-    for (const f of files) out.push((await uploadLecture(f, settings, profile!, t.upload)).msg);
+    for (const f of files) out.push((await uploadLecture(f.file, settings, profile!, t.upload, f.kind)).msg);
     setLog(out);
     setBusy(false);
     setDone(true);
@@ -199,47 +206,62 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
         </TabsContent>
 
         <TabsContent value="materials" className="space-y-4">
-          {allowUpload ? (
-            <label className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border-2 border-dashed border-border p-6 text-center hover:border-accent">
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                multiple
-                className="sr-only"
-                onChange={(e) => {
-                  const add = [...(e.target.files ?? [])];
-                  setFiles((cur) => [...cur.filter((f) => !add.some((a) => a.name === f.name)), ...add]);
-                  setMissingFiles([]);
-                  e.target.value = "";
-                }}
-              />
-              <FileUpIcon size={22} aria-hidden className="text-muted" />
-              <span className="font-medium">{t.courseForm.choosePdfs}</span>
-              <span className="text-sm text-muted">{t.courseForm.pdfHint}</span>
-            </label>
-          ) : (
-            <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
-              {t.courseForm.localOnly}
-            </p>
-          )}
+          <p className="text-sm text-muted">{t.courseForm.materialsIntro}</p>
+          {!allowUpload && <p className="rounded-xl border border-border bg-surface p-3 text-sm text-muted">{t.courseForm.localOnly}</p>}
           {missingFiles.length > 0 && files.length === 0 && (
             <p role="status" className="rounded-lg border border-warn/40 bg-warn/10 p-3 text-sm">
               {t.courseForm.missingFiles(missingFiles.join(", "))}
             </p>
           )}
-          {files.length > 0 && (
-            <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm" aria-label={t.courseForm.selectedFiles}>
-              {files.map((f) => (
-                <li key={f.name} className="flex items-center gap-3 px-3 py-2">
-                  <span className="min-w-0 flex-1 truncate">{f.name}</span>
-                  <span className="text-xs text-muted">{kb(f.size)}</span>
-                  <button type="button" onClick={() => setFiles((cur) => cur.filter((x) => x !== f))} className="text-xs text-bad underline" aria-label={t.courseForm.removeFile(f.name)}>
-                    {t.courseForm.remove}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {KINDS.map((kind) => {
+              const mine = files.filter((f) => f.kind === kind);
+              return (
+                <div key={kind} className="flex flex-col rounded-xl border border-border bg-surface p-3">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border-2 border-dashed border-border p-3 hover:border-accent has-[:focus-visible]:border-accent">
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      multiple
+                      className="sr-only"
+                      onChange={(e) => {
+                        const add = [...(e.target.files ?? [])].map((file) => ({ file, kind }));
+                        setFiles((cur) => [...cur.filter((f) => !add.some((a) => a.file.name === f.file.name)), ...add]);
+                        setMissingFiles([]);
+                        e.target.value = "";
+                      }}
+                    />
+                    <FileUpIcon size={20} aria-hidden className="mt-0.5 shrink-0 text-muted" />
+                    <span className="min-w-0">
+                      <span className="block font-medium">
+                        {t.courseForm.kinds[kind]} <span className="text-xs font-normal text-muted">{t.common.optional}</span>
+                      </span>
+                      <span className="block text-xs text-muted">{t.courseForm.kindHints[kind]}</span>
+                    </span>
+                  </label>
+                  {mine.length > 0 && (
+                    <ul className="mt-2 divide-y divide-border text-sm" aria-label={`${t.courseForm.selectedFiles}: ${t.courseForm.kinds[kind]}`}>
+                      {mine.map((f) => (
+                        <li key={f.file.name} className="flex items-center gap-2 py-1.5">
+                          <span className="min-w-0 flex-1 truncate">{f.file.name}</span>
+                          <span className="text-xs text-muted">{kb(f.file.size)}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFiles((cur) => cur.filter((x) => x !== f))}
+                            className="text-xs text-bad underline"
+                            aria-label={t.courseForm.removeFile(f.file.name)}
+                          >
+                            {t.courseForm.remove}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted">{t.courseForm.pdfHint}</p>
           {nav("materials")}
         </TabsContent>
 
@@ -251,7 +273,15 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
                 [t.courseForm.review.examDate, examDate || "—", "course"],
                 [t.courseForm.review.level, t.levels[level], "course"],
                 [t.courseForm.review.language, language ? t.langNames[language] : t.courseForm.profileDefault(profile ? t.langNames[profile.language] : null), "language"],
-                [t.courseForm.review.materials, files.length ? t.courseForm.pdfCount(files.length) : t.courseForm.noneYet, "materials"],
+                [
+                  t.courseForm.review.materials,
+                  files.length
+                    ? KINDS.filter((k) => files.some((f) => f.kind === k))
+                        .map((k) => `${t.courseForm.kinds[k]}: ${files.filter((f) => f.kind === k).length}`)
+                        .join(" · ")
+                    : t.courseForm.noneYet,
+                  "materials",
+                ],
               ] as const
             ).map(([k, v, tabId]) => (
               <div key={k}>

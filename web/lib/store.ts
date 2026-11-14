@@ -81,9 +81,11 @@ export async function uploadLecture(
   course: CourseSettings,
   profile: LocalProfile,
   msgs: { started: (name: string) => string; failed: string },
+  kind?: string, // slides | notes | exams | exercises | other (material type hint for the pipeline)
 ): Promise<{ ok: boolean; msg: string }> {
   const body = new FormData();
   body.append("file", file);
+  if (kind) body.append("kind", kind);
   const { styles, instructions } = profile;
   const language = course.language ?? profile.language;
   body.append("profile", JSON.stringify({ course: course.title, exam_date: course.exam_date, level: course.level, language, styles, instructions }));
