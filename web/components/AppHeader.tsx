@@ -72,12 +72,14 @@ export default function AppHeader() {
         }),
     [manifest],
   );
-  const continueHref = `/learn/${last && lessons.some((l) => l.key === last) ? last : (lessons[0]?.key ?? "")}`;
+  // Always rendered (no layout jump); disabled until there is a lesson to continue.
+  const continueKey = last && lessons.some((l) => l.key === last) ? last : lessons[0]?.key;
+  const continueHref = continueKey ? `/learn/${continueKey}` : null;
   const results = lessons.filter((l) => `${l.title} ${l.lecture}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   const links = [
     { href: "/", label: t.nav.courses, icon: LibraryBigIcon, active: pathname === "/" || pathname.startsWith("/course/") },
-    ...(lessons.length ? [{ href: continueHref, label: t.nav.continue, icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
+    { href: continueHref, label: t.nav.continue, icon: PlayIcon, active: pathname.startsWith("/learn") },
     { href: "/dashboard", label: t.nav.progress, icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
     { href: "/profile", label: t.nav.profile, icon: UserRoundIcon, active: pathname === "/profile" },
     { href: "/download", label: t.nav.download, icon: DownloadIcon, active: pathname === "/download" },
@@ -110,20 +112,28 @@ export default function AppHeader() {
           </button>
 
           <nav aria-label={t.nav.main} className="flex h-full items-stretch sm:ml-auto">
-            {links.map(({ href, label, icon: Icon, active }) => (
-              <Link
-                key={href + label}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={`relative flex min-w-12 flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] sm:min-w-16 ${
-                  active ? "text-accent" : "text-muted hover:text-accent"
-                }`}
-              >
-                <Icon size={19} aria-hidden />
-                <span>{label}</span>
-                {active && <span aria-hidden className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-accent" />}
-              </Link>
-            ))}
+            {links.map(({ href, label, icon: Icon, active }) => {
+              const cls = "relative flex min-w-12 flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] sm:min-w-16";
+              if (!href)
+                return (
+                  <span key={label} aria-disabled="true" className={`${cls} cursor-not-allowed text-muted opacity-40`}>
+                    <Icon size={19} aria-hidden />
+                    <span>{label}</span>
+                  </span>
+                );
+              return (
+                <Link
+                  key={href + label}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={`${cls} ${active ? "text-accent" : "text-muted hover:text-accent"}`}
+                >
+                  <Icon size={19} aria-hidden />
+                  <span>{label}</span>
+                  {active && <span aria-hidden className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-accent" />}
+                </Link>
+              );
+            })}
           </nav>
 
           <AuthButton />
