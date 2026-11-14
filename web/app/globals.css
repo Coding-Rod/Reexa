@@ -1,23 +1,33 @@
 @import "tailwindcss";
 
-/* Palette from the team's DS Live study app: warm paper + ink navy, one accent. */
+/* Reexa palette: flat navy + teal accent + purple glass cards (dark is the brand default). */
 :root {
-  color-scheme: light dark;
-  --background: light-dark(#f7f5f0, #17191e);
-  --surface: light-dark(#fffdf8, #1e2026);
-  --border: light-dark(#e2ddd2, #33363f);
-  --foreground: light-dark(#1f2430, #e4e4e7);
-  --muted: light-dark(#5f636e, #a1a3ac);
-  --accent: light-dark(#1f4e79, #8fb8ea);
-  --accent-fg: light-dark(#fffdf8, #17191e);
-  --accent-soft: light-dark(#e3ecf8, #263a55);
-  --good: light-dark(#2e7d32, #7cc387);
-  --bad: light-dark(#b3261e, #f08a80);
-  --warn: light-dark(#8a5a00, #e0b65a);
+  color-scheme: dark;
+  --background: light-dark(#f6f5fc, #0f1d3a);
+  --surface: light-dark(#ffffff, #1e2350);
+  --border: light-dark(#d8d5fa, #3a3478);
+  --foreground: light-dark(#0f1d3a, #e8e9ed);
+  --heading: light-dark(#0f1d3a, #ffffff);
+  --muted: light-dark(#4a4f6a, #a9aec6);
+  --accent: light-dark(#6a2fd6, #75fbf6);
+  --accent-fg: light-dark(#ffffff, #0f1d3a);
+  --accent-soft: light-dark(#ede7fd, #46308f);
+  --brand: #8142f6;
+  --good: light-dark(#1e7a45, #7ce3a0);
+  --bad: light-dark(#b3261e, #ff8a8a);
+  --warn: light-dark(#8a5a00, #f5c76b);
   --header-h: 60px;
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
+
+/* Purple glass on every surface card in dark mode. */
+:root:not([data-theme="light"]) .bg-surface {
+  background-image: linear-gradient(180deg, #26255a, #1a2349);
+  box-shadow: 0 0 0 1px rgb(79 56 160 / 0.45), 0 8px 28px -12px rgb(79 56 160 / 0.55);
+}
+:root:not([data-theme="light"]) h1,
+:root:not([data-theme="light"]) h2 { color: var(--heading); }
 
 @theme inline {
   --color-background: var(--background);
@@ -31,6 +41,8 @@
   --color-bad: var(--bad);
   --color-warn: var(--warn);
   --color-accent-soft: var(--accent-soft);
+  --color-brand: var(--brand);
+  --color-heading: var(--heading);
   --font-sans: system-ui, "Segoe UI", Inter, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
