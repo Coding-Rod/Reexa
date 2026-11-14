@@ -128,10 +128,6 @@ Built with [Spec Kit](https://github.com/github/spec-kit) (spec-driven developme
 4. `/speckit-tasks`: task breakdown
 5. `/speckit-implement`: build it
 
-## Run
-
-
-
 ## Draft app
 
 - `worker/`: Python pipeline (PDF → outline → script, notes and quiz → AI jury → voiceover + captions → ManimGL video). Run: `conda run -n 3b1b python -m worker.pipeline <pdf> --max-sections 1` (`LLM_STUB=1` without an API key).
