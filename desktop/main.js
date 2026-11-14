@@ -6,10 +6,10 @@ const { app, BrowserWindow, Menu, shell, dialog } = require("electron");
 const { spawn } = require("node:child_process");
 const path = require("node:path");
 
-const ONLINE_URL = process.env.REWIND_URL || "https://web-zeta-six-87.vercel.app";
+const ONLINE_URL = process.env.REEXA_URL || "https://web-zeta-six-87.vercel.app";
 const OLLAMA = "http://localhost:11434";
 const LOCAL_PORT = 3210;
-const LOCAL_MODEL = process.env.REWIND_LOCAL_MODEL || "qwen2.5-coder:7b";
+const LOCAL_MODEL = process.env.REEXA_LOCAL_MODEL || "qwen2.5-coder:7b";
 let win;
 let server;
 
@@ -85,7 +85,7 @@ app.whenReady().then(() => {
       { role: "windowMenu" },
     ]),
   );
-  open(process.env.REWIND_MODE === "local" ? "local" : "online");
+  open(process.env.REEXA_MODE === "local" ? "local" : "online");
 });
 
 app.on("window-all-closed", () => app.quit());

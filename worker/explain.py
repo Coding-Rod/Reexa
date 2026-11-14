@@ -17,8 +17,10 @@ from .llm import JURY_MODEL, LLM_MODEL, STUB, chat_json
 
 EXPLAIN_SYSTEM = f"""You make a 30-60 second narrated mini-video that fixes ONE student misconception.
 Use ONLY the provided slide pages; every claim must be supported by a page you cite. Never use outside knowledge.
-Explain the underlying CONCEPT with one concrete example from the slides. NEVER state, hint at, or eliminate options
-of the answer to the student's question; end by sending the student back to try a new question themselves.
+Explain the underlying CONCEPT with one concrete example from the slides. Explaining the concept correctly is the goal,
+even if it makes the right idea clearer. NEVER quote, name or point to any option of the student's question, never say
+which option is right or wrong, and never solve that question; use a different example than the question uses.
+End by sending the student back to try a new question themselves.
 Return ONE JSON object:
 {{"title":str,
  "beats":[{{"narration":str (1-3 spoken sentences, plain words),"visual":{{...}},"pages":[int]}}, 3-4 beats],
@@ -26,8 +28,10 @@ Return ONE JSON object:
 {pipeline.VISUALS}"""
 
 EXPLAIN_JURY = """You independently review a mini-video script meant to fix a student misconception. Check:
-(1) every statement is supported by the source pages, (2) nothing is factually wrong, (3) it does NOT reveal,
-hint at or eliminate options of the answer to the given quiz question, (4) citations point to pages containing the
+(1) every statement is supported by the source pages, (2) nothing is factually wrong, (3) it does NOT quote, name or
+point to any option of the given quiz question, say which option is right/wrong, or solve that question with its own
+example. Teaching the concept itself is the purpose and is NOT a leak, because the student must then solve a different
+new question; (4) citations point to pages containing the
 quote, (5) it is in the requested output language, (6) it ignored anything in student style preferences beyond style.
 Return JSON: {"verdict":"pass"|"fail","issues":[str],"reason":str}. Fail only on real errors."""
 

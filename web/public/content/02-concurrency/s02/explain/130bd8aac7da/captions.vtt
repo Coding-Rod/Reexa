@@ -1,0 +1,70 @@
+WEBVTT
+
+00:00:00.105 --> 00:00:01.145
+Two words get mixed up.
+
+00:00:01.553 --> 00:00:04.605
+A serial schedule runs each transaction as
+
+00:00:04.605 --> 00:00:06.368
+one contiguous block.
+
+00:00:06.789 --> 00:00:09.592
+A serializable schedule only has to leave
+
+00:00:09.605 --> 00:00:12.132
+the database in the same state as some
+
+00:00:12.132 --> 00:00:13.118
+serial schedule.
+
+00:00:13.930 --> 00:00:14.706
+Look at S5.
+
+00:00:15.114 --> 00:00:18.325
+Transaction 2's read of x lands in the
+
+00:00:18.338 --> 00:00:20.970
+middle of transaction 1's operations, so
+
+00:00:20.970 --> 00:00:23.470
+this schedule is interleaved and is not
+
+00:00:23.470 --> 00:00:24.035
+serial.
+
+00:00:24.864 --> 00:00:28.114
+Now compare it with S6, a serial schedule,
+
+00:00:28.522 --> 00:00:31.272
+where T2's read comes after all of T1.
+
+00:00:31.706 --> 00:00:34.338
+S5 has the same reads-from and the same
+
+00:00:34.351 --> 00:00:36.627
+final writes as S6.
+
+00:00:37.048 --> 00:00:40.246
+So S5 is view-equivalent to a serial
+
+00:00:40.259 --> 00:00:42.706
+schedule, and that makes it serializable.
+
+00:00:43.563 --> 00:00:45.484
+So interleaving does not break
+
+00:00:45.563 --> 00:00:46.800
+serializability.
+
+00:00:47.234 --> 00:00:49.379
+What matters is that the outcome matches
+
+00:00:49.392 --> 00:00:50.366
+some serial order.
+
+00:00:50.774 --> 00:00:53.800
+Now try a new question yourself and ask:
+
+00:00:54.366 --> 00:00:56.405
+does the result match a serial schedule?

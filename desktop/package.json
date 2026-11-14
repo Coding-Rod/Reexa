@@ -6,7 +6,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "local": "REWIND_MODE=local electron ."
+    "local": "REEXA_MODE=local electron ."
   },
   "devDependencies": {
     "electron": "^45.3.2"
