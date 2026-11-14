@@ -1,7 +1,9 @@
 """edge-tts per beat: mp3 + word timings (seconds)."""
 import asyncio
 import subprocess
+import re
 import time
+import unicodedata
 
 import edge_tts
 
@@ -28,14 +30,25 @@ def duration(path):
     return float(out)
 
 
+def speakable(text):
+    """LLM narration can carry symbols that make edge-tts return no audio (SSML chars, LaTeX, odd unicode)."""
+    t = unicodedata.normalize("NFKC", text)  # r₁ -> r1, ligatures, full-width chars
+    t = t.replace("&", " and ").replace("→", " to ").replace("≤", " at most ").replace("≥", " at least ")
+    t = re.sub(r"[<>{}\\$^_|*#`~\[\]]", " ", t)
+    t = "".join(c for c in t if c.isprintable())
+    return re.sub(r"\s+", " ", t).strip()
+
+
 def synth(text, out_path, voice=VOICE):
     """Returns (duration_seconds, [(start, end, word), ...])."""
+    text = speakable(text)
     for attempt in range(4):  # edge-tts drops requests intermittently (403 / NoAudioReceived)
         try:
             words = asyncio.run(_synth(text, out_path, voice))
             return duration(out_path), words
         except Exception as e:
             if attempt == 3:
+                print(f"tts failed on text: {text!r}", flush=True)
                 raise
             print(f"tts retry {attempt + 1}: {e}", flush=True)
             time.sleep(1.5 * (attempt + 1))
@@ -73,4 +86,5 @@ if __name__ == "__main__":
     cs = cues(text, ws, 10, max_chars=30)
     assert [c[2] for c in cs] == ["Two transactions run at the", "same time.", "Is it correct?"], cs
     assert cs[0][0] == 10 and cs[-1][1] == 10 + 4.9, cs
+    assert speakable("r₁(x) → w₂(x) & <b>$x$</b>") == "r1(x) to w2(x) and b x /b", speakable("r₁(x) → w₂(x) & <b>$x$</b>")
     print("ok", cs)
