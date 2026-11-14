@@ -14,7 +14,7 @@ Student Tech Clash is Reply's hackathon for university students. The schedule ru
 
 | Level | Status | What |
 |-------|--------|------|
-| 1 · Design | Required | Pick a real problem and design an AI-based solution |
+| 1 · Design | Required | Pick a real problem, design an AI-based solution, pitch it in 60 seconds |
 | 2 · Build | Required | Build a working AI agent prototype |
 | 3 · Extra | Optional (bonus) | Multi-agent system, knowledge graph and/or launch campaign |
 
@@ -79,6 +79,38 @@ Judges apply three questions at every level:
 1. **Is this genuinely new, or just faster?** Speeding up an existing process is interesting; changing what's possible is the goal.
 2. **Does this help someone think, or does it think for them?** Know which side of the line the idea is on.
 3. **Who benefits, and who might be left out?** Every design choice includes someone and excludes someone else.
+
+### Criteria
+
+| Criterion | Weight |
+|-----------|--------|
+| Creativity & Innovation | 40% |
+| Impact | 20% |
+| Technical | 20% |
+| Effective Presentation | 20% |
+
+### How to present
+
+1. **Stage 1, every team: 60-second elevator pitch.** No slides. Cover the problem (who experiences it and when), the AI-based solution, and its impact. When the minute is up, listeners should be able to repeat the idea in their own words. Be ready to defend your choices.
+2. **Stage 2, top 3 teams only: slide presentation, 5 minutes max.** Problem, idea, how it works, impact. Be ready to defend your choices.
+
+## Hand-in checklist
+
+The presentation is required. If possible, also share the materials produced (agent, documents, prototype files).
+
+**Level 1 · Pitch slides**
+- [ ] Problem: what it is and who experiences it
+- [ ] Idea: the AI solution in plain language
+- [ ] Use scenario in a real moment
+- [ ] Target user and context
+- [ ] Success measures
+- [ ] 60-second pitch rehearsed
+
+**Level 2 · Prototype**
+- [ ] Agent instructions + note on key design choices
+- [ ] Description of material and action(s)
+- [ ] Screenshots or export of setup / workflow
+- [ ] Demo video (optional)
 
 ## Team
 
