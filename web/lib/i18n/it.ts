@@ -226,6 +226,7 @@ const it: Dict = {
     signInHint: "Accedi per mostrare il tuo nome e conservare il tuo account.",
     tabs: { preferences: "Preferenze", instructions: "Istruzioni per il tutor", privacy: "Privacy", review: "Riepilogo" },
     uiLanguage: "Lingua dell'interfaccia",
+    theme: "Tema",
     uiLanguageHint: "Menu, pulsanti e messaggi di Reexa.",
     defaultLanguage: "Lingua predefinita delle lezioni",
     defaultLanguageHint: "Narrazione, sottotitoli, appunti e quiz. Ogni corso può cambiarla.",
@@ -327,7 +328,7 @@ const it: Dict = {
     mobileNote: "Installa l'app web nella schermata Home. Si apre a schermo intero, come un'app nativa.",
     ios: "iPhone / iPad (Safari): tocca Condividi, poi Aggiungi a Home.",
     android: "Android (Chrome): apri il menu ⋮, poi Installa app o Aggiungi a schermata Home.",
-    native: "App mobili native: sviluppi futuri.",
+    native: "App mobili native: in arrivo.",
   },
 };
 

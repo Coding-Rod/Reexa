@@ -2,11 +2,8 @@
 import {
   ChartNoAxesColumnIncreasingIcon,
   LibraryBigIcon,
-  MonitorIcon,
-  MoonIcon,
   PlayIcon,
   SearchIcon,
-  SunIcon,
   UserRoundIcon,
   DownloadIcon,
 } from "lucide-react";
@@ -15,12 +12,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AuthButton from "@/components/AuthButton";
 import { authEnabled } from "@/lib/firebase";
-import { LangMenu, useT } from "@/components/Lang";
-import { fmtTime, loadLastLesson, loadTheme, saveTheme, type Theme } from "@/lib/store";
+import { useT } from "@/components/Lang";
+import { fmtTime, loadLastLesson } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
-const THEME_ICON = { system: MonitorIcon, light: SunIcon, dark: MoonIcon };
-const NEXT_THEME: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
 
 export default function AppHeader() {
   const t = useT();
@@ -28,7 +23,6 @@ export default function AppHeader() {
   const router = useRouter();
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [last, setLast] = useState<string | null>(null);
-  const [theme, setTheme] = useState<Theme>("system");
   const [palette, setPalette] = useState(false);
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -38,10 +32,7 @@ export default function AppHeader() {
       .then((r) => r.json())
       .then(setManifest)
       .catch(() => {});
-    const sync = () => {
-      setLast(loadLastLesson());
-      setTheme(loadTheme());
-    };
+    const sync = () => setLast(loadLastLesson());
     sync();
     window.addEventListener("tutor-store", sync);
     return () => window.removeEventListener("tutor-store", sync);
@@ -86,7 +77,6 @@ export default function AppHeader() {
     ...(authEnabled ? [] : [{ href: "/profile", label: t.nav.profile, icon: UserRoundIcon, active: pathname === "/profile" }]),
     { href: "/download", label: t.nav.download, icon: DownloadIcon, active: pathname === "/download" },
   ];
-  const ThemeIcon = THEME_ICON[theme];
 
   // Sign-in is a standalone screen: no navigation until the user is in.
   if (pathname === "/signin") return null;
@@ -141,23 +131,8 @@ export default function AppHeader() {
             })}
           </nav>
 
+          {/* Language and theme live in the profile (Preferences), not in the bar. */}
           <AuthButton />
-
-          <LangMenu />
-
-          <button
-            type="button"
-            onClick={() => {
-              const next = NEXT_THEME[theme];
-              saveTheme(next);
-              setTheme(next);
-            }}
-            className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-background text-muted hover:border-accent hover:text-accent"
-            aria-label={t.nav.themeLabel(t.nav.themes[theme], t.nav.themes[NEXT_THEME[theme]])}
-            title={t.nav.themeTitle(t.nav.themes[theme])}
-          >
-            <ThemeIcon size={16} aria-hidden />
-          </button>
         </div>
       </header>
 

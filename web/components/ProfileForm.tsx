@@ -7,7 +7,7 @@ import { useLang, useSetLang, useT } from "@/components/Lang";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth, authEnabled } from "@/lib/firebase";
 import { LANGUAGES, LIMITS, STYLES, type Armor, type Language, type Style } from "@/lib/profile";
-import { clearDraft, clearLocalData, loadDraft, loadProfile, saveDraft, saveProfile } from "@/lib/store";
+import { clearDraft, clearLocalData, loadDraft, loadProfile, loadTheme, saveDraft, saveProfile, saveTheme, type Theme } from "@/lib/store";
 
 export const input = "w-full rounded-lg border border-border bg-surface px-3 py-2 focus:border-accent focus:outline-none";
 const TABS = ["preferences", "instructions", "privacy", "review"] as const;
@@ -22,6 +22,7 @@ export default function ProfileForm() {
   const setUiLang = useSetLang();
   const user = useUser();
   const [uiLang, setUiLangChoice] = useState<Language>(currentUiLang);
+  const [theme, setTheme] = useState<Theme>("system");
   const [language, setLanguage] = useState<Language>("en");
   const [styles, setStyles] = useState<Style[]>(["visual"]);
   const [instructions, setInstructions] = useState("");
@@ -48,6 +49,7 @@ export default function ProfileForm() {
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration from localStorage */
     hydrate(true);
+    setTheme(loadTheme());
     setRestored(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only; later language changes must not reset the form
@@ -176,8 +178,10 @@ export default function ProfileForm() {
               className={input}
               value={uiLang}
               onChange={(e) => {
-                setUiLangChoice(e.target.value as Language);
-                setSaved(false);
+                // Display setting: applies right away (reloads into the new language), no Save needed.
+                const next = e.target.value as Language;
+                setUiLangChoice(next);
+                setUiLang(next);
               }}
             >
               {Object.entries(LANGUAGES).map(([code, label]) => (
@@ -188,6 +192,32 @@ export default function ProfileForm() {
             </select>
             <p className="mt-1 text-sm text-muted">{t.profile.uiLanguageHint}</p>
           </div>
+          <fieldset>
+            <legend className="mb-2 font-medium">{t.profile.theme}</legend>
+            <div className="flex flex-wrap gap-2">
+              {(["system", "light", "dark"] as const).map((th) => (
+                <label
+                  key={th}
+                  className={`cursor-pointer rounded-full border px-4 py-1.5 capitalize has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${
+                    theme === th ? "border-accent bg-accent-soft" : "border-border"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="theme"
+                    value={th}
+                    checked={theme === th}
+                    onChange={() => {
+                      setTheme(th);
+                      saveTheme(th); // applies immediately
+                    }}
+                    className="sr-only"
+                  />
+                  {t.nav.themes[th]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div>
             <label htmlFor="language" className="mb-1 block font-medium">
               {t.profile.defaultLanguage}

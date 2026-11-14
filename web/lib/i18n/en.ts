@@ -226,6 +226,7 @@ const en = {
     signInHint: "Sign in to show your name and keep your account.",
     tabs: { preferences: "Preferences", instructions: "Tutor instructions", privacy: "Privacy", review: "Review" },
     uiLanguage: "Interface language",
+    theme: "Theme",
     uiLanguageHint: "Menus, buttons and messages in Reexa.",
     defaultLanguage: "Default lesson language",
     defaultLanguageHint: "Narration, captions, notes and quizzes. A course can override it.",
@@ -322,7 +323,7 @@ const en = {
     mobileNote: "Install the web app on your home screen. It opens full screen, like a native app.",
     ios: "iPhone / iPad (Safari): tap Share, then Add to Home Screen.",
     android: "Android (Chrome): open the ⋮ menu, then Install app or Add to Home screen.",
-    native: "Native mobile apps: future work.",
+    native: "Native mobile apps: coming soon.",
   },
 };
 
