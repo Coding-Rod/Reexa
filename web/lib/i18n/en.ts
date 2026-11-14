@@ -279,6 +279,7 @@ const en = {
     materialsIntro: "Add any of these. All are optional, but the course needs at least one PDF.",
     needFiles: "Add at least one PDF in Materials.",
     kinds: { slides: "Slides", notes: "Notes", exams: "Past exams", exercises: "Exercises", other: "Other" },
+    dropHint: "Drag PDFs here or click to choose",
     kindHints: {
       slides: "Lecture decks from the course.",
       notes: "Your or the professor's notes.",

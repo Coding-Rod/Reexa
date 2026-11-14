@@ -284,6 +284,7 @@ const pt: Dict = {
     materialsIntro: "Adicione o que tiver. Tudo é opcional, mas o curso precisa de pelo menos um PDF.",
     needFiles: "Adicione pelo menos um PDF em Materiais.",
     kinds: { slides: "Slides", notes: "Anotações", exams: "Provas anteriores", exercises: "Exercícios", other: "Outros" },
+    dropHint: "Arraste os PDFs aqui ou clique para escolher",
     kindHints: {
       slides: "Os slides das aulas do curso.",
       notes: "Suas anotações ou as do professor.",

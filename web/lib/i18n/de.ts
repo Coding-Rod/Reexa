@@ -284,6 +284,7 @@ const de: Dict = {
     materialsIntro: "Füge hinzu, was du hast. Alles ist optional, aber der Kurs braucht mindestens ein PDF.",
     needFiles: "Füge unter Materialien mindestens ein PDF hinzu.",
     kinds: { slides: "Folien", notes: "Notizen", exams: "Altklausuren", exercises: "Übungen", other: "Sonstiges" },
+    dropHint: "PDFs hierher ziehen oder klicken zum Auswählen",
     kindHints: {
       slides: "Die Vorlesungsfolien des Kurses.",
       notes: "Deine Notizen oder die der Lehrperson.",

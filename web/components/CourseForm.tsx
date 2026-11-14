@@ -35,6 +35,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
   const [restored, setRestored] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [missingFiles, setMissingFiles] = useState<string[]>([]);
+  const [dragKind, setDragKind] = useState<Kind | null>(null);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration from localStorage */
@@ -76,6 +77,15 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
     }, t.toast.startedOver);
   }
 
+
+  function addFiles(list: FileList | null, kind: Kind) {
+    const add = [...(list ?? [])]
+      .filter((file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"))
+      .map((file) => ({ file, kind }));
+    if (!add.length) return;
+    setFiles((cur) => [...cur.filter((f) => !add.some((a) => a.file.name === f.file.name)), ...add]);
+    setMissingFiles([]);
+  }
 
   const profileOk = profile?.armor?.verdict === "pass";
   const slug = courseSlug(title);
@@ -218,16 +228,28 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
               const mine = files.filter((f) => f.kind === kind);
               return (
                 <div key={kind} className="flex flex-col rounded-xl border border-border bg-surface p-3">
-                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border-2 border-dashed border-border p-3 hover:border-accent has-[:focus-visible]:border-accent">
+                  <label
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragKind(kind);
+                    }}
+                    onDragLeave={() => setDragKind(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragKind(null);
+                      addFiles(e.dataTransfer.files, kind);
+                    }}
+                    className={`flex cursor-pointer items-start gap-3 rounded-lg border-2 border-dashed p-3 transition-colors hover:border-accent has-[:focus-visible]:border-accent ${
+                      dragKind === kind ? "border-accent bg-accent-soft" : "border-border"
+                    }`}
+                  >
                     <input
                       type="file"
                       accept="application/pdf,.pdf"
                       multiple
                       className="sr-only"
                       onChange={(e) => {
-                        const add = [...(e.target.files ?? [])].map((file) => ({ file, kind }));
-                        setFiles((cur) => [...cur.filter((f) => !add.some((a) => a.file.name === f.file.name)), ...add]);
-                        setMissingFiles([]);
+                        addFiles(e.target.files, kind);
                         e.target.value = "";
                       }}
                     />
@@ -237,6 +259,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
                         {t.courseForm.kinds[kind]} <span className="text-xs font-normal text-muted">{t.common.optional}</span>
                       </span>
                       <span className="block text-xs text-muted">{t.courseForm.kindHints[kind]}</span>
+                      <span className="mt-1 block text-xs text-accent">{t.courseForm.dropHint}</span>
                     </span>
                   </label>
                   {mine.length > 0 && (
