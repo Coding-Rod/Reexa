@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { checkProfile } from "@/lib/armor";
-import { readManifest, REPO_ROOT, writeManifest } from "@/lib/content";
+import { readManifest, REPO_ROOT, upsertCourse, writeManifest } from "@/lib/content";
 
 const MAX_BYTES = 50 * 1024 * 1024;
 
@@ -45,7 +45,8 @@ export async function POST(req: Request) {
   await writeFile(profilePath, JSON.stringify(profile, null, 2));
 
   const m = await readManifest();
-  const entry = { id, title: base.replace(/\.pdf$/i, "").replace(/[_-]+/g, " "), source: base, status: "processing" as const, language: profile.language, sections: [] };
+  const course_id = upsertCourse(m, profile.course);
+  const entry = { id, course_id, title: base.replace(/\.pdf$/i, "").replace(/[_-]+/g, " "), source: base, status: "processing" as const, language: profile.language, sections: [] };
   m.lectures = [...m.lectures.filter((l) => l.id !== id), entry];
   await writeManifest(m);
 

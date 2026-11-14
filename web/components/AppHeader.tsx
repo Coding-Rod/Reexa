@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import AuthButton from "@/components/AuthButton";
 import { fmtTime, loadLastLesson, loadTheme, saveTheme, type Theme } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
@@ -62,14 +63,17 @@ export default function AppHeader() {
     () =>
       (manifest?.lectures ?? [])
         .filter((l) => l.status === "ready")
-        .flatMap((l) => l.sections.map((s) => ({ key: `${l.id}/${s.id}`, title: s.title, lecture: l.title, duration: s.duration }))),
+        .flatMap((l) => {
+          const course = manifest?.courses.find((c) => c.id === l.course_id)?.title ?? "";
+          return l.sections.map((s) => ({ key: `${l.id}/${s.id}`, title: s.title, lecture: course ? `${course} · ${l.title}` : l.title, duration: s.duration }));
+        }),
     [manifest],
   );
   const continueHref = `/learn/${last && lessons.some((l) => l.key === last) ? last : (lessons[0]?.key ?? "")}`;
   const results = lessons.filter((l) => `${l.title} ${l.lecture}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   const links = [
-    { href: "/", label: "Library", icon: LibraryBigIcon, active: pathname === "/" },
+    { href: "/", label: "Courses", icon: LibraryBigIcon, active: pathname === "/" || pathname.startsWith("/course/") },
     ...(lessons.length ? [{ href: continueHref, label: "Continue", icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
     { href: "/dashboard", label: "Progress", icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
     { href: "/start", label: "Profile", icon: UserRoundIcon, active: pathname === "/start" },
@@ -80,11 +84,11 @@ export default function AppHeader() {
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-surface">
         <div className="mx-auto flex h-[var(--header-h)] max-w-[1600px] items-center gap-2 px-3 sm:gap-4 sm:px-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label="Rewind, library">
+          <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label="Reexa, courses">
             <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-extrabold text-accent-fg">
-              R
+              Re
             </span>
-            <span className="hidden sm:inline">Rewind</span>
+            <span className="hidden sm:inline">Reexa</span>
           </Link>
 
           <button
@@ -117,6 +121,8 @@ export default function AppHeader() {
               </Link>
             ))}
           </nav>
+
+          <AuthButton />
 
           <button
             type="button"

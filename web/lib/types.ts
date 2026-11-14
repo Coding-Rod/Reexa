@@ -44,8 +44,11 @@ export type PublicSection = Omit<Section, "quiz"> & { quiz: PublicQuestion[] };
 
 export type SectionRef = { id: string; title: string; duration: number; path: string };
 
+export type Course = { id: string; title: string; term?: string; description?: string };
+
 export type Lecture = {
   id: string;
+  course_id: string; // older manifests omit it; readManifest() fills it from `course`
   title: string;
   source: string;
   status: "processing" | "ready" | "failed";
@@ -54,7 +57,8 @@ export type Lecture = {
 };
 
 export type Manifest = {
-  course: { id: string; title: string };
+  course?: Course; // legacy single-course field
+  courses: Course[];
   lectures: Lecture[];
 };
 

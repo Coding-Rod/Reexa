@@ -2,6 +2,7 @@ import "server-only";
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { courseSlug } from "./profile";
 import type { Explain, Manifest, PublicSection, QuizItem, Section } from "./types";
 
 export const CONTENT_DIR = path.join(process.cwd(), "public", "content");
@@ -11,13 +12,33 @@ export const REPO_ROOT = path.resolve(process.cwd(), "..");
 const ID = /^[A-Za-z0-9_-]{1,80}$/;
 export const isId = (s: unknown): s is string => typeof s === "string" && ID.test(s);
 
-const EMPTY: Manifest = { course: { id: "db2", title: "Databases 2" }, lectures: [] };
+const DEFAULT_COURSE = { id: "db2", title: "Databases 2" };
+
+// Backward compatible: old manifests have one `course` and lectures without `course_id`.
+export function normalizeManifest(raw: Partial<Manifest>): Manifest {
+  const fallback = raw.course ?? DEFAULT_COURSE;
+  const courses = raw.courses?.length ? [...raw.courses] : [fallback];
+  const lectures = (raw.lectures ?? []).map((l) => ({ ...l, course_id: l.course_id || fallback.id }));
+  for (const l of lectures)
+    if (!courses.some((c) => c.id === l.course_id)) courses.push({ id: l.course_id, title: l.course_id });
+  return { courses, lectures };
+}
+
+// Same rule as worker/pipeline.py course_for(): reuse a course with the same title, else slug the title.
+export function upsertCourse(m: Manifest, title: string): string {
+  const t = title.trim() || DEFAULT_COURSE.title;
+  const hit = m.courses.find((c) => c.title.toLowerCase() === t.toLowerCase());
+  if (hit) return hit.id;
+  const id = courseSlug(t);
+  if (!m.courses.some((c) => c.id === id)) m.courses.push({ id, title: t });
+  return id;
+}
 
 export async function readManifest(): Promise<Manifest> {
   try {
-    return JSON.parse(await readFile(path.join(CONTENT_DIR, "manifest.json"), "utf8"));
+    return normalizeManifest(JSON.parse(await readFile(path.join(CONTENT_DIR, "manifest.json"), "utf8")));
   } catch {
-    return EMPTY;
+    return normalizeManifest({});
   }
 }
 

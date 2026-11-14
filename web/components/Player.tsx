@@ -57,13 +57,15 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
       <main className="mx-auto max-w-xl px-4 py-16">
         <p>{error}</p>
         <Link href="/" className="text-accent underline">
-          Back to the library
+          Back to your courses
         </Link>
       </main>
     );
 
-  const playlist = manifest?.lectures.filter((l) => l.status === "ready") ?? [];
   const lecture = manifest?.lectures.find((l) => l.id === lectureId);
+  const course = manifest?.courses.find((c) => c.id === lecture?.course_id);
+  // Playlist and prev/next stay inside this lesson's course.
+  const playlist = manifest?.lectures.filter((l) => l.status === "ready" && l.course_id === lecture?.course_id) ?? [];
   const lectureLang = lecture?.language;
   const flat = playlist.flatMap((l) => l.sections.map((x) => ({ href: `/learn/${l.id}/${x.id}`, key: `${l.id}/${x.id}`, title: x.title })));
   const at = flat.findIndex((f) => f.key === key);
@@ -124,8 +126,18 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
               <ol className="flex flex-wrap items-center gap-1">
                 <li>
                   <Link href="/" className="hover:text-accent">
-                    Library
+                    Courses
                   </Link>
+                </li>
+                <li aria-hidden>›</li>
+                <li>
+                  {course ? (
+                    <Link href={`/course/${course.id}`} className="hover:text-accent">
+                      {course.title}
+                    </Link>
+                  ) : (
+                    "Course"
+                  )}
                 </li>
                 <li aria-hidden>›</li>
                 <li>{lecture?.title ?? lectureId}</li>

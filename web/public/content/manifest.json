@@ -1,11 +1,16 @@
 {
-  "course": {
-    "id": "db2",
-    "title": "Databases 2"
-  },
+  "courses": [
+    {
+      "id": "db2",
+      "title": "Databases 2",
+      "term": "Politecnico di Milano · 2026",
+      "description": "Transactions, concurrency control, triggers, physical design, JPA."
+    }
+  ],
   "lectures": [
     {
       "id": "02-concurrency",
+      "course_id": "db2",
       "title": "Concurrency",
       "source": "02-Concurrency.pdf",
       "status": "ready",
@@ -27,6 +32,7 @@
     },
     {
       "id": "03-triggers",
+      "course_id": "db2",
       "title": "Triggers",
       "source": "03_Triggers.pdf",
       "status": "ready",

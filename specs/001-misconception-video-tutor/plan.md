@@ -46,6 +46,12 @@ Root: `web/public/content/`
 ```
 `status`: `processing` | `ready` | `failed`.
 
+**Multi-course (backward compatible):** manifest also has `courses: [{id, title, term?, description?}]`
+and each lecture has `course_id`. Readers (`web/lib/content.ts normalizeManifest`, `worker/pipeline.py
+load_manifest`) fill both from the legacy single `course` field when missing. A new upload's course
+comes from the profile `course`: reuse the course with the same title (case-insensitive), else
+`id = slug(title)` (lowercase, non-alnum → `-`, max 40). Pages: `/` courses, `/course/[id]` library.
+
 `<lecture>/<section>/section.json`
 ```json
 {

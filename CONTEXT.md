@@ -1,4 +1,4 @@
-# Team context: AI on Campus · Reply Student Tech Clash 2026
+# Team context: Reexa · AI on Campus · Reply Student Tech Clash 2026
 
 Paste this file into your AI assistant (ChatGPT, Claude, Gemini, Cursor…) as the first message,
 then add your own goal. Everything below is the shared truth for the team. Last updated 2026-11-14 14:20.
@@ -23,7 +23,7 @@ then add your own goal. Everything below is the shared truth for the team. Last 
 
 ## 2. Our product
 
-**One-liner:** Upload your course slides and get a personal playlist of AI lecture videos
+**Name: Reexa.** **One-liner:** Upload your course slides and get a personal playlist of AI lecture videos
 (animation + voiceover + captions + transcript) and notes, all cited to the slide page. When you
 get a check question wrong, the tutor finds *which idea* you misunderstood and makes a 1-minute
 video about exactly that, then asks a new question to prove you got it.
@@ -104,7 +104,7 @@ full-curriculum overview, other courses.
 | G2 | **5-minute slide deck** (in case we reach the top 3): problem, idea, demo, how it works, trust, impact, vision | slides | Deck lead |
 | G3 | **Demo script**: exact clicks, a real student mistake from a past DB2 exam, backup plan if the network fails | 1-page script | Demo lead |
 | G4 | **Deliverables pack**: agent instructions and design notes, material and actions, 3–4 example interactions including the "just give me the answer" refusal, screenshots | doc + images | Docs lead |
-| G5 | **Name + tagline** | 1 line | Everyone, 5 min |
+| G5 | **Tagline** for Reexa (name decided) | 1 line | Everyone, 5 min |
 | G6 | **Success measures + risks slide**: who benefits, who is left out, data ownership, offline, cost | 1 slide | Deck lead |
 | G7 | (Bonus, Level 3) **Launch campaign**: name, tagline, channels (PoliMi student groups, course pages, WeBeep), timing (2 weeks before exams) | 1 slide | Anyone free |
 

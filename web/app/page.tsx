@@ -1,5 +1,5 @@
-import Library from "@/components/Library";
+import Courses from "@/components/Courses";
 
 export default function Home() {
-  return <Library allowUpload={process.env.ALLOW_UPLOAD === "1"} />;
+  return <Courses />;
 }

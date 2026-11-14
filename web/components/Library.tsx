@@ -1,12 +1,14 @@
 "use client";
 import { CheckIcon, FileUpIcon, PlayIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { LANGUAGES } from "@/lib/profile";
+import { courseSlug, LANGUAGES } from "@/lib/profile";
 import { fmtTime, loadLastLesson, loadProfile, loadProgress, type LocalProfile, type Progress } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
 export default function Library({ allowUpload }: { allowUpload: boolean }) {
+  const { courseId } = useParams<{ courseId: string }>();
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [progress, setProgress] = useState<Progress>({});
   const [upload, setUpload] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
@@ -35,7 +37,11 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   }, [refresh]);
 
   // Poll only while the worker is generating something.
-  const processing = manifest?.lectures.some((l) => l.status === "processing");
+  // /course/<id> or /course/<title-slug> (the profile form links by title before the course exists).
+  const course = manifest?.courses.find((c) => c.id === courseId || courseSlug(c.title) === courseId);
+  const lectures = manifest?.lectures.filter((l) => l.course_id === (course?.id ?? courseId)) ?? [];
+  const title = course?.title ?? (profile && courseSlug(profile.course) === courseId ? profile.course : null);
+  const processing = lectures.some((l) => l.status === "processing");
   useEffect(() => {
     if (!processing) return;
     const t = setInterval(refresh, 5000);
@@ -49,8 +55,9 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
     const body = new FormData();
     body.append("file", file);
     // Name stays in the browser; the server re-checks the rest.
-    const { course, exam_date, level, language, styles, instructions } = profile;
-    body.append("profile", JSON.stringify({ course, exam_date, level, language, styles, instructions }));
+    // Uploads from a course page land in that course.
+    const { exam_date, level, language, styles, instructions } = profile;
+    body.append("profile", JSON.stringify({ course: title ?? profile.course, exam_date, level, language, styles, instructions }));
     try {
       const res = await fetch("/api/upload", { method: "POST", body });
       const data = await res.json();
@@ -61,7 +68,7 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
     }
   }
 
-  const ready = manifest?.lectures.filter((l) => l.status === "ready" && l.sections.length) ?? [];
+  const ready = lectures.filter((l) => l.status === "ready" && l.sections.length);
   const total = ready.reduce((n, l) => n + l.sections.length, 0);
   const watched = ready.reduce((n, l) => n + l.sections.filter((s) => progress[`${l.id}/${s.id}`]?.watched).length, 0);
   const nextOf = (l: Manifest["lectures"][number]) => l.sections.find((s) => !progress[`${l.id}/${s.id}`]?.watched) ?? l.sections[0];
@@ -107,8 +114,14 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-10">
       <header className="mb-6">
-        <p className="text-sm text-muted">{profile?.name ? `Hi ${profile.name}` : "Your personal playlist"}</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{manifest?.course.title ?? "Loading…"}</h1>
+        <nav aria-label="Breadcrumb" className="text-sm text-muted">
+          <Link href="/" className="hover:text-accent">
+            Courses
+          </Link>{" "}
+          › <span aria-current="page">{title ?? courseId}</span>
+        </nav>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{manifest ? (title ?? "Course not found") : "Loading…"}</h1>
+        {course?.term && <p className="mt-1 text-sm text-muted">{course.term}</p>}
         <p className="mt-2 max-w-2xl text-muted">
           Each lecture becomes short narrated lessons with captions, a transcript and notes. Every claim cites a slide
           page and is checked by a second AI before you see it.
@@ -174,13 +187,13 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
           Lectures
         </h2>
         {!manifest && <p className="text-muted">Loading lectures…</p>}
-        {manifest && manifest.lectures.length === 0 && (
+        {manifest && lectures.length === 0 && (
           <p className="rounded-xl border border-border bg-surface p-6 text-muted">
             No lectures yet. {allowUpload ? "Upload a PDF above to generate your first lessons." : "Run the local version to upload slides."}
           </p>
         )}
         <ol className="grid gap-4 md:grid-cols-2">
-          {manifest?.lectures.map((l) => {
+          {lectures.map((l) => {
             const done = l.sections.filter((s) => progress[`${l.id}/${s.id}`]?.watched).length;
             const pct = l.sections.length ? Math.round((done / l.sections.length) * 100) : 0;
             const next = l.sections.length ? nextOf(l) : null;

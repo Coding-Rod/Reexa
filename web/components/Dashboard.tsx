@@ -5,7 +5,7 @@ import { loadProfile, loadProgress, type LocalProfile, type Progress } from "@/l
 import type { Manifest, PublicSection } from "@/lib/types";
 
 type Status = "gap" | "closed" | "new";
-type Row = { lectureId: string; lectureTitle: string; sectionId: string; sectionTitle: string; concepts: string[] };
+type Row = { courseId: string; courseTitle: string; lectureId: string; lectureTitle: string; sectionId: string; sectionTitle: string; concepts: string[] };
 
 const CHIP: Record<Status, string> = {
   gap: "bg-warn/15 text-warn",
@@ -41,7 +41,8 @@ export default function Dashboard() {
             const r = await fetch(`/api/section/${l.id}/${s.id}`);
             const sec: PublicSection | null = r.ok ? await r.json() : null;
             const concepts = [...new Set((sec?.quiz ?? []).map((q) => q.concept))];
-            return { lectureId: l.id, lectureTitle: l.title, sectionId: s.id, sectionTitle: s.title, concepts };
+            const course = m.courses.find((c) => c.id === l.course_id);
+            return { courseId: l.course_id, courseTitle: course?.title ?? l.course_id, lectureId: l.id, lectureTitle: l.title, sectionId: s.id, sectionTitle: s.title, concepts };
           }),
         );
         setRows(out);
@@ -69,7 +70,7 @@ export default function Dashboard() {
   const unwatched = rows.find((r) => !progress[`${r.lectureId}/${r.sectionId}`]?.watched);
   const days = daysLeft(profile?.exam_date);
   const nothing = watched === 0 && seen.length === 0;
-  const lectures = [...new Set(rows.map((r) => r.lectureId))];
+  const courses = [...new Set(rows.map((r) => r.courseId))];
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
@@ -130,12 +131,22 @@ export default function Dashboard() {
 
           <section aria-label="Concepts">
             <h2 className="mb-3 text-lg font-semibold">Concepts</h2>
-            <div className="space-y-6">
-              {lectures.map((id) => {
-                const lr = rows.filter((r) => r.lectureId === id);
+            <div className="space-y-8">
+              {courses.map((cid) => {
+                const cr = rows.filter((r) => r.courseId === cid);
+                return (
+                  <div key={cid}>
+                    <h3 className="mb-3 font-semibold">
+                      <Link href={`/course/${cid}`} className="hover:text-accent">
+                        {cr[0].courseTitle}
+                      </Link>
+                    </h3>
+                    <div className="space-y-6">
+              {[...new Set(cr.map((r) => r.lectureId))].map((id) => {
+                const lr = cr.filter((r) => r.lectureId === id);
                 return (
                   <div key={id}>
-                    <h3 className="mb-2 font-medium">{lr[0].lectureTitle}</h3>
+                    <h4 className="mb-2 font-medium">{lr[0].lectureTitle}</h4>
                     <ul className="space-y-2">
                       {lr.map((r) => (
                         <li key={r.sectionId} className="rounded-lg border border-border bg-surface p-3">
@@ -156,6 +167,10 @@ export default function Dashboard() {
                         </li>
                       ))}
                     </ul>
+                  </div>
+                );
+              })}
+                    </div>
                   </div>
                 );
               })}

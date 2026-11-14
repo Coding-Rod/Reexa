@@ -88,3 +88,7 @@ export function normalizeProfile(raw: unknown): { profile?: Profile; errors: str
   if (errors.length) return { errors };
   return { profile: { course, exam_date, level: level!, language: language!, styles, instructions }, errors };
 }
+
+/** URL/course id from a course title. Same rule as worker/pipeline.py course_for(). */
+export const courseSlug = (title: string) =>
+  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "course";

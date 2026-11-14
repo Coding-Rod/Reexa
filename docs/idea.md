@@ -107,7 +107,7 @@ Oral exam simulation is dropped.
 
 ## Open questions for the team
 
-1. **Name:** Rewind? SeeIt? Something else?
+1. **Name:** decided: **Reexa**.
 2. **Demo story:** whose real mistake do we use? Ideally one of you, on a real past-exam question.
 3. **Who presents the 60-second pitch, and who drives the demo?**
 4. **When is "end of work" today?** We need the exact time to size the build.

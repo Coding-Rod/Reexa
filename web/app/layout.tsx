@@ -4,7 +4,7 @@ import AppHeader from "@/components/AppHeader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Rewind",
+  title: { default: "Reexa", template: "%s · Reexa" },
   description: "Your course slides as a personal playlist of narrated, captioned lessons with notes and checks.",
 };
 

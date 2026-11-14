@@ -1,0 +1,14 @@
+{
+  "name": "reexa-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reexa desktop: online app, or local mode with Ollama models",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "local": "REWIND_MODE=local electron ."
+  },
+  "devDependencies": {
+    "electron": "^45.3.2"
+  }
+}

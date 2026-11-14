@@ -173,11 +173,28 @@ def render(section, out_dir, file, voice=tts.VOICE):
 
 def load_manifest():
     path = CONTENT / "manifest.json"
-    return json.loads(path.read_text()) if path.exists() else {"course": COURSE, "lectures": []}
+    m = json.loads(path.read_text()) if path.exists() else {"lectures": []}
+    m.setdefault("courses", [m.pop("course", None) or COURSE])  # legacy single-course manifests
+    for l in m["lectures"]:
+        l.setdefault("course_id", m["courses"][0]["id"])
+    return m
 
 
-def save_lecture(lecture):
+def course_for(manifest, title):
+    """Same rule as web/lib/content.ts upsertCourse(): reuse a course with the same title, else slug it."""
+    title = (title or "").strip() or COURSE["title"]
+    for c in manifest["courses"]:
+        if c["title"].lower() == title.lower():
+            return c["id"]
+    cid = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40] or "course"
+    if not any(c["id"] == cid for c in manifest["courses"]):
+        manifest["courses"].append({"id": cid, "title": title})
+    return cid
+
+
+def save_lecture(lecture, course_title=None):
     manifest = load_manifest()
+    lecture["course_id"] = course_for(manifest, course_title)
     manifest["lectures"] = [l for l in manifest["lectures"] if l["id"] != lecture["id"]] + [lecture]
     manifest["lectures"].sort(key=lambda l: l["id"])
     CONTENT.mkdir(parents=True, exist_ok=True)
@@ -232,20 +249,20 @@ def main():
     title = args.title or re.sub(r"^\d+[-_ ]*", "", pdf.stem).replace("_", " ").replace("-", " ").strip()
     lecture = {"id": lecture_id, "title": title, "source": file, "status": "processing",
                "language": "en" if STUB else profile["language"], "sections": []}
-    save_lecture(lecture)
+    save_lecture(lecture, profile["course"])
     t0 = time.time()
     try:
         pages = pages_of(pdf)
         for idx, spec in enumerate(outline(file, pages, profile)[: args.max_sections], 1):
             print(f"[{time.time() - t0:5.0f}s] section {idx}: {spec['title']} pp.{spec['pages']}", flush=True)
             lecture["sections"].append(build_section(file, pages, lecture_id, idx, spec, profile))
-            save_lecture(lecture)  # playlist grows while the rest renders
+            save_lecture(lecture, profile["course"])  # playlist grows while the rest renders
         lecture["status"] = "ready"
     except Exception:
         lecture["status"] = "failed"
         raise
     finally:
-        save_lecture(lecture)
+        save_lecture(lecture, profile["course"])
         print(f"[{time.time() - t0:5.0f}s] {lecture_id}: {lecture['status']}", flush=True)
 
 

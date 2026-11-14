@@ -1,4 +1,4 @@
-# AI on Campus · Reply Student Tech Clash 2026
+# Reexa · AI on Campus · Reply Student Tech Clash 2026
 
 Our team's repo for **AI on Campus**, the 2026 edition of Reply's [Student Tech Clash](https://studentclash.reply.com/) hackathon (Politecnico di Milano team).
 

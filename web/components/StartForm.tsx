@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LANGUAGES, LEVELS, LIMITS, STYLES, type Armor, type Language, type Level, type Style } from "@/lib/profile";
+import { courseSlug, LANGUAGES, LEVELS, LIMITS, STYLES, type Armor, type Language, type Level, type Style } from "@/lib/profile";
 import { loadProfile, saveProfile } from "@/lib/store";
 
 const FILTER_LABELS: Record<string, string> = {
@@ -181,8 +181,11 @@ export default function StartForm() {
               <>
                 <p className="font-medium text-good">✓ Checked by {engine}. Profile saved.</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href="/" className="inline-flex rounded-lg bg-accent px-3.5 py-2 font-medium text-accent-fg hover:opacity-90">
-                    Go to my library
+                  <Link
+                    href={`/course/${courseSlug(course)}`}
+                    className="inline-flex rounded-lg bg-accent px-3.5 py-2 font-medium text-accent-fg hover:opacity-90"
+                  >
+                    Go to {course || "my course"}
                   </Link>
                   <Link href="/dashboard" className="inline-flex rounded-lg border border-border px-3.5 py-2 hover:border-accent hover:text-accent">
                     My progress
