@@ -1,32 +1,23 @@
 @import "tailwindcss";
 
+/* Palette from the team's DS Live study app: warm paper + ink navy, one accent. */
 :root {
-  --background: #f7f7f5;
-  --surface: #ffffff;
-  --border: #e3e3df;
-  --foreground: #1a1a1a;
-  --muted: #5c5c57;
-  --accent: #3b4fd8;
-  --accent-fg: #ffffff;
-  --good: #1f7a3d;
-  --bad: #b3261e;
-  --warn: #8a5a00;
+  color-scheme: light dark;
+  --background: light-dark(#f7f5f0, #17191e);
+  --surface: light-dark(#fffdf8, #1e2026);
+  --border: light-dark(#e2ddd2, #33363f);
+  --foreground: light-dark(#1f2430, #e4e4e7);
+  --muted: light-dark(#5f636e, #a1a3ac);
+  --accent: light-dark(#1f4e79, #8fb8ea);
+  --accent-fg: light-dark(#fffdf8, #17191e);
+  --accent-soft: light-dark(#e3ecf8, #263a55);
+  --good: light-dark(#2e7d32, #7cc387);
+  --bad: light-dark(#b3261e, #f08a80);
+  --warn: light-dark(#8a5a00, #e0b65a);
+  --header-h: 60px;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #111214;
-    --surface: #1a1b1f;
-    --border: #2d2f35;
-    --foreground: #ececea;
-    --muted: #a3a3a0;
-    --accent: #8c9bff;
-    --accent-fg: #111214;
-    --good: #5fd08a;
-    --bad: #ff8a80;
-    --warn: #f0c060;
-  }
-}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 @theme inline {
   --color-background: var(--background);
@@ -39,8 +30,9 @@
   --color-good: var(--good);
   --color-bad: var(--bad);
   --color-warn: var(--warn);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: system-ui, "Segoe UI", Inter, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
 
 body {

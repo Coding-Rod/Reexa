@@ -1,0 +1,185 @@
+"use client";
+import {
+  ChartNoAxesColumnIncreasingIcon,
+  LibraryBigIcon,
+  MonitorIcon,
+  MoonIcon,
+  PlayIcon,
+  SearchIcon,
+  SunIcon,
+  UserRoundIcon,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { fmtTime, loadLastLesson, loadTheme, saveTheme, type Theme } from "@/lib/store";
+import type { Manifest } from "@/lib/types";
+
+const THEME_ICON = { system: MonitorIcon, light: SunIcon, dark: MoonIcon };
+const NEXT_THEME: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
+
+export default function AppHeader() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [manifest, setManifest] = useState<Manifest | null>(null);
+  const [last, setLast] = useState<string | null>(null);
+  const [theme, setTheme] = useState<Theme>("system");
+  const [palette, setPalette] = useState(false);
+  const [query, setQuery] = useState("");
+  const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/manifest")
+      .then((r) => r.json())
+      .then(setManifest)
+      .catch(() => {});
+    const sync = () => {
+      setLast(loadLastLesson());
+      setTheme(loadTheme());
+    };
+    sync();
+    window.addEventListener("tutor-store", sync);
+    return () => window.removeEventListener("tutor-store", sync);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setQuery("");
+        setPalette(true);
+      }
+      if (e.key === "Escape") setPalette(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+  useEffect(() => {
+    if (palette) input.current?.focus();
+  }, [palette]);
+
+  const lessons = useMemo(
+    () =>
+      (manifest?.lectures ?? [])
+        .filter((l) => l.status === "ready")
+        .flatMap((l) => l.sections.map((s) => ({ key: `${l.id}/${s.id}`, title: s.title, lecture: l.title, duration: s.duration }))),
+    [manifest],
+  );
+  const continueHref = `/learn/${last && lessons.some((l) => l.key === last) ? last : (lessons[0]?.key ?? "")}`;
+  const results = lessons.filter((l) => `${l.title} ${l.lecture}`.toLowerCase().includes(query.trim().toLowerCase()));
+
+  const links = [
+    { href: "/", label: "Library", icon: LibraryBigIcon, active: pathname === "/" },
+    ...(lessons.length ? [{ href: continueHref, label: "Continue", icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
+    { href: "/dashboard", label: "Progress", icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
+    { href: "/start", label: "Profile", icon: UserRoundIcon, active: pathname === "/start" },
+  ];
+  const ThemeIcon = THEME_ICON[theme];
+
+  return (
+    <>
+      <header className="sticky top-0 z-40 border-b border-border bg-surface">
+        <div className="mx-auto flex h-[var(--header-h)] max-w-[1600px] items-center gap-2 px-3 sm:gap-4 sm:px-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label="Rewind, library">
+            <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-extrabold text-accent-fg">
+              R
+            </span>
+            <span className="hidden sm:inline">Rewind</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              setQuery("");
+              setPalette(true);
+            }}
+            className="ml-auto flex h-9 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-sm text-muted hover:border-accent sm:ml-4 sm:w-64 md:w-80"
+            aria-label="Search lessons"
+          >
+            <SearchIcon size={16} aria-hidden />
+            <span className="hidden sm:inline">Search lessons</span>
+            <kbd className="ml-auto hidden rounded border border-border px-1.5 text-[11px] sm:inline">Ctrl K</kbd>
+          </button>
+
+          <nav aria-label="Main" className="flex h-full items-stretch sm:ml-auto">
+            {links.map(({ href, label, icon: Icon, active }) => (
+              <Link
+                key={label}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={`relative flex min-w-12 flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] sm:min-w-16 ${
+                  active ? "text-accent" : "text-muted hover:text-accent"
+                }`}
+              >
+                <Icon size={19} aria-hidden />
+                <span>{label}</span>
+                {active && <span aria-hidden className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-accent" />}
+              </Link>
+            ))}
+          </nav>
+
+          <button
+            type="button"
+            onClick={() => {
+              const next = NEXT_THEME[theme];
+              saveTheme(next);
+              setTheme(next);
+            }}
+            className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-background text-muted hover:border-accent hover:text-accent"
+            aria-label={`Theme: ${theme}. Switch to ${NEXT_THEME[theme]}`}
+            title={`Theme: ${theme}`}
+          >
+            <ThemeIcon size={16} aria-hidden />
+          </button>
+        </div>
+      </header>
+
+      {palette && (
+        <div className="fixed inset-0 z-50 grid place-items-start justify-center px-4 pt-[12vh]">
+          <button type="button" aria-label="Close search" className="absolute inset-0 bg-black/50" onClick={() => setPalette(false)} />
+          <div role="dialog" aria-modal="true" aria-label="Search lessons" className="relative w-[min(640px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-2xl">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (results[0]) {
+                  router.push(`/learn/${results[0].key}`);
+                  setPalette(false);
+                }
+              }}
+              className="flex items-center gap-3 border-b border-border px-4 py-3"
+            >
+              <SearchIcon size={18} className="text-muted" aria-hidden />
+              <input
+                ref={input}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Jump to a lesson…"
+                aria-label="Lesson title"
+                className="min-w-0 flex-1 bg-transparent text-base outline-none"
+              />
+              <kbd className="rounded border border-border px-1.5 text-[11px] text-muted">Esc</kbd>
+            </form>
+            <ul className="max-h-[50vh] overflow-y-auto p-2">
+              {results.length === 0 && <li className="px-3 py-4 text-sm text-muted">No lesson matches “{query}”.</li>}
+              {results.map((r) => (
+                <li key={r.key}>
+                  <Link
+                    href={`/learn/${r.key}`}
+                    onClick={() => setPalette(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-accent-soft focus-visible:bg-accent-soft"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">{r.title}</span>
+                      <span className="block truncate text-xs text-muted">{r.lecture}</span>
+                    </span>
+                    <span className="font-mono text-xs text-muted">{fmtTime(r.duration)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

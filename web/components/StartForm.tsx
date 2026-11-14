@@ -74,10 +74,8 @@ export default function StartForm() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12">
-      <Link href="/" className="text-sm text-accent underline">
-        ← Library
-      </Link>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight">Your learning profile</h1>
+      <p className="text-sm text-muted">Step 1 of 3</p>
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight">Your learning profile</h1>
       <p className="mt-2 text-muted">
         Tell the tutor how to build your lessons. Your free-text instructions are security-checked before any AI sees them.
       </p>
@@ -124,7 +122,7 @@ export default function StartForm() {
           <legend className="mb-2 font-medium">Your level in this course</legend>
           <div className="flex flex-wrap gap-2">
             {LEVELS.map((l) => (
-              <label key={l} className={`cursor-pointer rounded-full border px-4 py-1.5 capitalize has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${level === l ? "border-accent bg-accent/15" : "border-border"}`}>
+              <label key={l} className={`cursor-pointer rounded-full border px-4 py-1.5 capitalize has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${level === l ? "border-accent bg-accent-soft" : "border-border"}`}>
                 <input type="radio" name="level" value={l} checked={level === l} onChange={() => setLevel(l)} className="sr-only" />
                 {l}
               </label>
@@ -182,9 +180,14 @@ export default function StartForm() {
             {armor.verdict === "pass" ? (
               <>
                 <p className="font-medium text-good">✓ Checked by {engine}. Profile saved.</p>
-                <Link href="/" className="mt-2 inline-block text-accent underline">
-                  Continue: upload your lecture slides →
-                </Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link href="/" className="inline-flex rounded-lg bg-accent px-3.5 py-2 font-medium text-accent-fg hover:opacity-90">
+                    Go to my library
+                  </Link>
+                  <Link href="/dashboard" className="inline-flex rounded-lg border border-border px-3.5 py-2 hover:border-accent hover:text-accent">
+                    My progress
+                  </Link>
+                </div>
               </>
             ) : (
               <>

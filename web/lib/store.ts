@@ -40,3 +40,15 @@ export const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor
 export type LocalProfile = import("./profile").Profile & { name: string };
 export const loadProfile = () => read<LocalProfile | null>("tutor:profile", null);
 export const saveProfile = (p: LocalProfile) => write("tutor:profile", p);
+
+// "Continue" in the header: the last lesson this browser opened.
+export const loadLastLesson = () => read<string | null>("tutor:last", null);
+export const saveLastLesson = (sectionKey: string) => write("tutor:last", sectionKey);
+
+export type Theme = "system" | "light" | "dark";
+export const loadTheme = () => read<Theme>("tutor:theme", "system");
+export function saveTheme(t: Theme) {
+  write("tutor:theme", t);
+  if (t === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = t;
+}

@@ -73,10 +73,7 @@ export default function Dashboard() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
-      <Link href="/" className="text-sm text-muted hover:text-accent">
-        ← Library
-      </Link>
-      <header className="mb-6 mt-2">
+      <header className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">
           {profile?.name ? `${profile.name}'s progress` : "My progress"}
         </h1>
@@ -104,7 +101,7 @@ export default function Dashboard() {
           </section>
 
           <section aria-label="Study next" className="mb-8 rounded-xl border-2 border-accent/50 bg-surface p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-accent">Study next</p>
+            <p className="text-sm font-semibold text-accent">Study next</p>
             {nothing ? (
               <p className="mt-1">
                 Start with your first lesson:{" "}

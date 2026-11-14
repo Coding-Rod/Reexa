@@ -1,19 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
+import AppHeader from "@/components/AppHeader";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: "AI on Campus Tutor",
+  title: "Rewind",
   description: "Your course slides as a personal playlist of narrated, captioned lessons with notes and checks.",
 };
 
+// Apply the saved theme before first paint (no flash). Stored by lib/store.ts saveTheme().
+const themeScript = `try{var t=JSON.parse(localStorage.getItem("tutor:theme"));if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className="flex min-h-full flex-col font-sans">
+        <Suspense fallback={<div className="h-[var(--header-h)] border-b border-border bg-surface" />}>
+          <AppHeader />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }
