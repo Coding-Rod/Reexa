@@ -5,13 +5,15 @@ import time
 
 import edge_tts
 
-VOICE = "en-US-AndrewMultilingualNeural"
+VOICES = {"en": "en-US-AndrewMultilingualNeural", "it": "it-IT-DiegoNeural", "es": "es-ES-AlvaroNeural",
+          "fr": "fr-FR-HenriNeural", "de": "de-DE-ConradNeural", "pt": "pt-BR-AntonioNeural"}
+VOICE = VOICES["en"]
 
 
-async def _synth(text, out_path):
+async def _synth(text, out_path, voice):
     words = []
     with open(out_path, "wb") as f:
-        async for chunk in edge_tts.Communicate(text, VOICE, rate="-5%", boundary="WordBoundary").stream():
+        async for chunk in edge_tts.Communicate(text, voice, rate="-5%", boundary="WordBoundary").stream():
             if chunk["type"] == "audio":
                 f.write(chunk["data"])
             elif chunk["type"] == "WordBoundary":
@@ -26,11 +28,11 @@ def duration(path):
     return float(out)
 
 
-def synth(text, out_path):
+def synth(text, out_path, voice=VOICE):
     """Returns (duration_seconds, [(start, end, word), ...])."""
     for attempt in range(4):  # edge-tts drops requests intermittently (403 / NoAudioReceived)
         try:
-            words = asyncio.run(_synth(text, out_path))
+            words = asyncio.run(_synth(text, out_path, voice))
             return duration(out_path), words
         except Exception as e:
             if attempt == 3:
