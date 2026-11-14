@@ -1,0 +1,54 @@
+{
+  "title": "Conflict test vs view test",
+  "misconception": "Treating CSR as the definition of serializability: a conflict cycle does not rule out VSR (blind writes).",
+  "question_id": "q1",
+  "language": "en",
+  "video": "/content/02-concurrency/s01/explain/be5b3bff8267/video.mp4",
+  "captions": "/content/02-concurrency/s01/explain/be5b3bff8267/captions.vtt",
+  "duration": 58.14,
+  "transcript": [
+    {
+      "start": 0.0,
+      "end": 7.68,
+      "text": "Your reasoning treated the conflict test as the definition of serializability. Let's pull the two ideas apart."
+    },
+    {
+      "start": 8.03,
+      "end": 26.49,
+      "text": "View-serializability asks: same reads and same final writes as some serial schedule? Conflict-serializability is stricter: the same order on every conflicting pair. Every CSR schedule is VSR; the converse is not necessarily true."
+    },
+    {
+      "start": 26.84,
+      "end": 43.01,
+      "text": "Look at this schedule. T2 and T1 write x without reading it first: these are blind writes. Their order creates conflicts in both directions, yet nobody ever reads what they wrote, because T3 overwrites x at the end."
+    },
+    {
+      "start": 43.36,
+      "end": 57.79,
+      "text": "Against the serial order T1, T2, T3: T1 reads the initial x and T3 writes last, in both. So what does a conflict cycle really tell you? Try the next question yourself."
+    }
+  ],
+  "citations": [
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 22,
+      "quote": "the same operations, the same reads-from relationship, and the same final writes"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 34,
+      "quote": "the converse is not necessarily true"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 41,
+      "quote": "r1(x) w2(x) w1(x) w3(x)"
+    }
+  ],
+  "jury": {
+    "verdict": "pass",
+    "reason": "Beats match pages 22, 34 and 41; the video explains CSR vs VSR and ends with a question instead of stating the answer to q1.",
+    "model": "openai/gpt-5.5",
+    "attempts": 1
+  }
+}

@@ -1,0 +1,73 @@
+WEBVTT
+
+00:00:00.105 --> 00:00:02.487
+Your reasoning treated the conflict test
+
+00:00:02.947 --> 00:00:05.316
+as the definition of serializability.
+
+00:00:05.737 --> 00:00:07.276
+Let's pull the two ideas apart.
+
+00:00:08.135 --> 00:00:09.977
+View-serializability asks:
+
+00:00:10.412 --> 00:00:13.780
+same reads and same final writes as some
+
+00:00:13.793 --> 00:00:14.635
+serial schedule?
+
+00:00:15.043 --> 00:00:17.543
+Conflict-serializability is stricter:
+
+00:00:18.004 --> 00:00:20.622
+the same order on every conflicting pair.
+
+00:00:21.043 --> 00:00:24.648
+Every CSR schedule is VSR; the converse is
+
+00:00:24.648 --> 00:00:26.109
+not necessarily true.
+
+00:00:26.941 --> 00:00:27.823
+Look at this schedule.
+
+00:00:28.244 --> 00:00:31.389
+T2 and T1 write x without reading it
+
+00:00:31.389 --> 00:00:31.928
+first:
+
+00:00:32.218 --> 00:00:33.362
+these are blind writes.
+
+00:00:33.783 --> 00:00:35.691
+Their order creates conflicts in both
+
+00:00:35.704 --> 00:00:38.547
+directions, yet nobody ever reads what
+
+00:00:38.547 --> 00:00:42.165
+they wrote, because T3 overwrites x at the
+
+00:00:42.165 --> 00:00:42.639
+end.
+
+00:00:43.441 --> 00:00:47.651
+Against the serial order T1, T2, T3:
+
+00:00:48.165 --> 00:00:52.151
+T1 reads the initial x and T3 writes last,
+
+00:00:52.375 --> 00:00:52.967
+in both.
+
+00:00:53.401 --> 00:00:55.257
+So what does a conflict cycle really tell
+
+00:00:55.257 --> 00:00:55.520
+you?
+
+00:00:55.941 --> 00:00:57.401
+Try the next question yourself.

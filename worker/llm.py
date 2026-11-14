@@ -170,6 +170,40 @@ STUBS = {
                                                             "relationship, and the same final writes"}]},
         ],
     },
+    "explain": {
+        "title": "Conflict test vs view test",
+        "beats": [
+            {"narration": "Your reasoning treated the conflict test as the definition of serializability. "
+                          "Let's pull the two ideas apart.",
+             "visual": {"type": "title", "text": "Conflict test vs view test",
+                        "subtitle": "Two tests, two different questions"}, "pages": [22, 34]},
+            {"narration": "View-serializability asks: same reads and same final writes as some serial schedule? "
+                          "Conflict-serializability is stricter: the same order on every conflicting pair. "
+                          "Every CSR schedule is VSR; the converse is not necessarily true.",
+             "visual": {"type": "bullets", "heading": "Two definitions",
+                        "items": ["VSR: same reads-from and final writes", "CSR: same order of all conflicts",
+                                  "CSR ⊂ VSR"]}, "pages": [22, 34]},
+            {"narration": "Look at this schedule. T2 and T1 write x without reading it first: these are blind writes. "
+                          "Their order creates conflicts in both directions, yet nobody ever reads what they wrote, "
+                          "because T3 overwrites x at the end.",
+             "visual": {"type": "schedule", "heading": "Blind writes",
+                        "ops": ["r1(x)", "w2(x)", "w1(x)", "w3(x)"], "highlight": [1, 2]}, "pages": [41]},
+            {"narration": "Against the serial order T1, T2, T3: T1 reads the initial x and T3 writes last, in both. "
+                          "So what does a conflict cycle really tell you? Try the next question yourself.",
+             "visual": {"type": "bullets", "heading": "Check the view conditions",
+                        "items": ["r1(x) reads the initial x", "Final write on x: w3(x)",
+                                  "Same as serial T1 T2 T3?"]}, "pages": [22, 41]},
+        ],
+        "citations": [
+            {"file": F, "page": 22, "quote": "the same operations, the same reads-from relationship, and the same "
+                                            "final writes"},
+            {"file": F, "page": 34, "quote": "the converse is not necessarily true"},
+            {"file": F, "page": 41, "quote": "r1(x) w2(x) w1(x) w3(x)"},
+        ],
+    },
+    "explain_jury": {"verdict": "pass", "issues": [],
+                     "reason": "Beats match pages 22, 34 and 41; the video explains CSR vs VSR and ends with a "
+                               "question instead of stating the answer to q1."},
     "jury": {"verdict": "pass", "issues": [],
              "reason": "All claims match the cited pages (20, 22, 30, 32, 34, 37, 41); narration does not reveal "
                        "quiz answers; quiz answers are correct."},
