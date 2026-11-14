@@ -1,4 +1,5 @@
 "use client";
+import { PlayerSkeleton } from "@/components/Skeletons";
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClipboardCheckIcon, FileTextIcon, NotebookPenIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -121,7 +122,7 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
 
       <main className="order-1 min-w-0 xl:order-2">
         {!section ? (
-          <p className="py-16 text-center text-muted">{t.player.loadingLesson}</p>
+          <PlayerSkeleton label={t.player.loadingLesson} />
         ) : (
           <>
             <nav aria-label={t.common.breadcrumb} className="mb-1 text-sm text-muted">

@@ -16,7 +16,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const open = !authEnabled || PUBLIC.includes(pathname);
 
   useEffect(() => {
-    if (!open && ready && !user) router.replace(`/signin?next=${encodeURIComponent(pathname)}`);
+    if (!open && ready && !user) router.replace("/signin");
   }, [open, ready, user, pathname, router]);
 
   if (open || user) return <>{children}</>;

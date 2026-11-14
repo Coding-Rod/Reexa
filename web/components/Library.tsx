@@ -1,4 +1,5 @@
 "use client";
+import { LectureCardsSkeleton } from "@/components/Skeletons";
 import { CheckIcon, FileUpIcon, PlayIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -77,7 +78,7 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
           </Link>{" "}
           › <span aria-current="page">{title ?? courseId}</span>
         </nav>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{manifest ? (title ?? t.library.notFound) : t.common.loading}</h1>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{manifest ? (title ?? t.library.notFound) : <span className="inline-block h-9 w-72 max-w-full animate-pulse rounded bg-accent-soft align-middle" aria-label={t.common.loading} />}</h1>
         {course?.term && <p className="mt-1 text-sm text-muted">{course.term}</p>}
         <p className="mt-2 max-w-2xl text-muted">{t.library.intro}</p>
       </header>
@@ -133,7 +134,7 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
         <h2 id="lectures" className="mb-3 text-lg font-semibold">
           {t.library.lectures}
         </h2>
-        {!manifest && <p className="text-muted">{t.library.loadingLectures}</p>}
+        {!manifest && <LectureCardsSkeleton label={t.library.loadingLectures} />}
         {manifest && lectures.length === 0 && (
           <p className="rounded-xl border border-border bg-surface p-6 text-muted">
             {t.library.noLectures} {allowUpload ? t.library.uploadAbove : t.library.runLocal}{" "}

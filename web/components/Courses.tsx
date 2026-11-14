@@ -1,4 +1,5 @@
 "use client";
+import { CourseCardsSkeleton } from "@/components/Skeletons";
 import { ArrowRightIcon, BookOpenIcon, CheckIcon, PlayIcon, PlusIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -61,7 +62,7 @@ export default function Courses() {
         </ol>
       )}
 
-      {!manifest && <p className="text-muted">{t.home.loading}</p>}
+      {!manifest && <CourseCardsSkeleton label={t.home.loading} />}
 
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {manifest?.courses.map((c) => {

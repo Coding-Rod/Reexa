@@ -3,6 +3,7 @@ import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import { useT } from "@/components/Lang";
 import Player from "@/components/Player";
+import { PlayerSkeleton } from "@/components/Skeletons";
 
 function Lesson() {
   const { lectureId, sectionId } = useParams<{ lectureId: string; sectionId: string }>();
@@ -12,7 +13,7 @@ function Lesson() {
 export default function LearnPage() {
   const t = useT();
   return (
-    <Suspense fallback={<p className="py-16 text-center text-muted">{t.player.loadingLesson}</p>}>
+    <Suspense fallback={<PlayerSkeleton label={t.player.loadingLesson} />}>
       <Lesson />
     </Suspense>
   );

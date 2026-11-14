@@ -6,13 +6,14 @@ import AuthButton, { useUser } from "@/components/AuthButton";
 import { useLang, useSetLang, useT } from "@/components/Lang";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth, authEnabled } from "@/lib/firebase";
-import { LANGUAGES, LIMITS, STYLES, type Armor, type Language, type Style } from "@/lib/profile";
+import { UI_LANGUAGES, type Lang } from "@/lib/i18n";
+import { isLanguage, LANGUAGES, LIMITS, STYLES, type Armor, type Language, type Style } from "@/lib/profile";
 import { clearDraft, clearLocalData, loadDraft, loadProfile, loadTheme, saveDraft, saveProfile, saveTheme, type Theme } from "@/lib/store";
 
 export const input = "w-full rounded-lg border border-border bg-surface px-3 py-2 focus:border-accent focus:outline-none";
 const TABS = ["preferences", "instructions", "privacy", "review"] as const;
 type Tab = (typeof TABS)[number];
-type Draft = { tab: Tab; uiLang: Language; language: Language; styles: Style[]; instructions: string };
+type Draft = { tab: Tab; uiLang: Lang; language: Language; styles: Style[]; instructions: string };
 const ghost = "rounded-lg border border-border px-4 py-2 hover:border-accent";
 const primary = "ml-auto rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg disabled:opacity-50";
 
@@ -21,7 +22,7 @@ export default function ProfileForm() {
   const currentUiLang = useLang();
   const setUiLang = useSetLang();
   const user = useUser();
-  const [uiLang, setUiLangChoice] = useState<Language>(currentUiLang);
+  const [uiLang, setUiLangChoice] = useState<Lang>(currentUiLang);
   const [theme, setTheme] = useState<Theme>("system");
   const [language, setLanguage] = useState<Language>("en");
   const [styles, setStyles] = useState<Style[]>(["visual"]);
@@ -30,6 +31,8 @@ export default function ProfileForm() {
   const [armor, setArmor] = useState<Armor | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  // Snapshot of the saved profile; Save stays disabled until the form differs from it.
+  const [baseline, setBaseline] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("preferences");
   const [restored, setRestored] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -37,9 +40,10 @@ export default function ProfileForm() {
   // Saved profile first, then any unsaved draft on top of it.
   function hydrate(withDraft: boolean) {
     const p = loadProfile();
+    setBaseline(p ? JSON.stringify({ language: p.language, styles: [...p.styles].sort(), instructions: p.instructions.trim() }) : null);
     const d = withDraft ? loadDraft<Draft>("profile") : null;
     setUiLangChoice(d?.uiLang ?? currentUiLang);
-    setLanguage(d?.language ?? p?.language ?? currentUiLang);
+    setLanguage(d?.language ?? p?.language ?? (isLanguage(currentUiLang) ? currentUiLang : "en"));
     setStyles(d?.styles ?? p?.styles ?? ["visual"]);
     setInstructions(d?.instructions ?? p?.instructions ?? "");
     setArmor(d ? null : (p?.armor ?? null));
@@ -86,6 +90,7 @@ export default function ProfileForm() {
       setArmor(data.armor ?? null);
       if (data.ok) {
         saveProfile(data.profile);
+        setBaseline(JSON.stringify({ language: data.profile.language, styles: [...data.profile.styles].sort(), instructions: data.profile.instructions.trim() }));
         clearDraft("profile");
         setSaved(true);
         if (uiLang !== currentUiLang) setUiLang(uiLang);
@@ -102,6 +107,8 @@ export default function ProfileForm() {
     setStyles((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s]));
   };
   const engine = t.profile.engines[armor?.engine ?? "local"];
+  // No saved profile yet = always savable (first save).
+  const dirty = baseline !== JSON.stringify({ language, styles: [...styles].sort(), instructions: instructions.trim() });
   const status = (
     <>
       {errors.length > 0 && (
@@ -179,12 +186,12 @@ export default function ProfileForm() {
               value={uiLang}
               onChange={(e) => {
                 // Display setting: applies right away (reloads into the new language), no Save needed.
-                const next = e.target.value as Language;
+                const next = e.target.value as Lang;
                 setUiLangChoice(next);
                 setUiLang(next);
               }}
             >
-              {Object.entries(LANGUAGES).map(([code, label]) => (
+              {Object.entries(UI_LANGUAGES).map(([code, label]) => (
                 <option key={code} value={code} lang={code}>
                   {label}
                 </option>
@@ -321,7 +328,7 @@ export default function ProfileForm() {
           <dl className="grid gap-3 rounded-xl border border-border bg-surface p-4 text-sm">
             {(
               [
-                [t.profile.review.uiLanguage, LANGUAGES[uiLang], "preferences"],
+                [t.profile.review.uiLanguage, UI_LANGUAGES[uiLang], "preferences"],
                 [t.profile.review.defaultLanguage, t.langNames[language], "preferences"],
                 [t.profile.review.styles, styles.map((x) => t.styles[x]).join(", ") || "—", "preferences"],
                 [t.profile.review.instructions, instructions || "—", "instructions"],
@@ -343,7 +350,7 @@ export default function ProfileForm() {
             <button type="button" onClick={() => setTab("privacy")} className={ghost}>
               {t.common.back}
             </button>
-            <button type="button" onClick={save} disabled={busy} className={primary}>
+            <button type="button" onClick={save} disabled={busy || !dirty} className={primary}>
               {busy ? t.profile.checking : t.profile.save}
             </button>
           </div>

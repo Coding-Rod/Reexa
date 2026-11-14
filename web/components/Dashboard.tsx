@@ -1,4 +1,5 @@
 "use client";
+import { DashboardSkeleton } from "@/components/Skeletons";
 import { useUser } from "@/components/AuthButton";
 import { useT } from "@/components/Lang";
 import Link from "next/link";
@@ -62,7 +63,7 @@ export default function Dashboard() {
     return () => window.removeEventListener("tutor-store", sync);
   }, []);
 
-  if (!rows) return <p className="py-16 text-center text-muted">{t.dashboard.loading}</p>;
+  if (!rows) return <DashboardSkeleton label={t.dashboard.loading} />;
 
   const status = (r: Row, c: string): Status => progress[`${r.lectureId}/${r.sectionId}`]?.concepts?.[c] ?? "new";
   const watched = rows.filter((r) => progress[`${r.lectureId}/${r.sectionId}`]?.watched).length;
