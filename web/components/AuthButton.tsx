@@ -17,7 +17,7 @@ export const useUser = () => useAuth().user;
 
 export default function AuthButton() {
   const t = useT();
-  const user = useUser();
+  const { user, ready } = useAuth();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const box = useRef<HTMLDivElement>(null);
@@ -29,6 +29,15 @@ export default function AuthButton() {
   }, []);
 
   if (!authEnabled || !auth) return null;
+
+  // Until Firebase restores the session, hold the slot with a skeleton (no "Sign in" → avatar blink).
+  if (!ready)
+    return (
+      <div aria-hidden className="flex h-8 w-28 animate-pulse items-center gap-2 rounded-full border border-border px-2">
+        <span className="size-6 rounded-full bg-accent-soft" />
+        <span className="hidden h-2.5 flex-1 rounded bg-accent-soft sm:block" />
+      </div>
+    );
 
   async function login() {
     setError("");

@@ -20,5 +20,16 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   }, [open, ready, user, pathname, router]);
 
   if (open || user) return <>{children}</>;
-  return <p className="py-16 text-center text-muted">{t.signin.checking}</p>;
+  return (
+    <main aria-busy="true" className="mx-auto w-full max-w-5xl animate-pulse px-4 py-10">
+      <span className="sr-only">{t.signin.checking}</span>
+      <div className="h-4 w-32 rounded bg-accent-soft" />
+      <div className="mt-3 h-9 w-72 max-w-full rounded bg-accent-soft" />
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-44 rounded-xl border border-border bg-surface" />
+        ))}
+      </div>
+    </main>
+  );
 }
