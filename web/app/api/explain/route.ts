@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { explainDir, readExplain, REPO_ROOT } from "@/lib/content";
+import { explainDir, findCachedExplain, readExplain, REPO_ROOT } from "@/lib/content";
 import { unseal } from "@/lib/llm";
 
 type Sealed = { lectureId: string; sectionId: string; questionId: string; misconception: string; language: string; iat: number };
@@ -22,8 +22,12 @@ export async function POST(req: Request) {
   const cached = await readExplain(dir);
   if (cached) return Response.json({ ...cached, cached: true });
 
-  if (process.env.ALLOW_UPLOAD !== "1")
+  if (process.env.ALLOW_UPLOAD !== "1") {
+    // No renderer online: serve the pre-generated video for this question's concept, if any.
+    const near = await findCachedExplain(t.lectureId, t.sectionId, t.questionId, t.language);
+    if (near) return Response.json({ ...near, cached: true });
     return Response.json({ error: "Live video generation runs in the local version only." }, { status: 503 });
+  }
   if (running > 0) return Response.json({ error: "Another video is rendering. Try again in a minute." }, { status: 429 });
 
   running++;
