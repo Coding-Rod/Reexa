@@ -15,7 +15,8 @@ const ghost = "rounded-lg border border-border px-4 py-2 hover:border-accent";
 const KINDS = ["slides", "notes", "exams", "exercises", "other"] as const;
 type Kind = (typeof KINDS)[number];
 type Picked = { file: File; kind: Kind };
-type Draft = { tab: Tab; title: string; examDate: string; level: Level; language: Language | ""; fileNames: string[] };
+type Draft = { tab: Tab; title: string; examDate: string; level: Level; language: Language | ""; tone?: string; fileNames: string[] };
+const TONE_MAX = 300;
 const kb = (n: number) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`);
 const primary = "ml-auto rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg disabled:opacity-50";
 
@@ -26,6 +27,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
   const [examDate, setExamDate] = useState("");
   const [level, setLevel] = useState<Level>("beginner");
   const [language, setLanguage] = useState<Language | "">(""); // "" = profile default
+  const [tone, setTone] = useState("");
   const [files, setFiles] = useState<Picked[]>([]); // all kinds optional, at least one file in total
   const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [busy, setBusy] = useState(false);
@@ -47,6 +49,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
       setExamDate(d.examDate);
       setLevel(d.level);
       setLanguage(d.language);
+      setTone(d.tone ?? "");
       setMissingFiles(d.fileNames);
     }
     setRestored(true);
@@ -58,8 +61,8 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
     if (!restored || done) return;
     const names = files.length ? files.map((f) => f.file.name) : missingFiles;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reflects the storage write result
-    setDraftSaved(saveDraft("course", { tab, title, examDate, level, language, fileNames: names } satisfies Draft));
-  }, [restored, done, tab, title, examDate, level, language, files, missingFiles]);
+    setDraftSaved(saveDraft("course", { tab, title, examDate, level, language, tone, fileNames: names } satisfies Draft));
+  }, [restored, done, tab, title, examDate, level, language, tone, files, missingFiles]);
 
   function startOver() {
     confirmToast(t.courseForm.startOverConfirm, t.toast, () => {
@@ -69,6 +72,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
       setExamDate("");
       setLevel("beginner");
       setLanguage("");
+      setTone("");
       setFiles([]);
       setMissingFiles([]);
       setError("");
@@ -102,8 +106,38 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
       return setTab("materials");
     }
     if (!profileOk) return setError(t.courseForm.needProfile);
+    const toneText = tone.trim();
+    if (toneText && [profile!.instructions, toneText].filter(Boolean).join("\n").length > LIMITS.instructions) {
+      setError(t.courseForm.toneTooLong(LIMITS.instructions));
+      return setTab("course");
+    }
     setBusy(true);
-    const settings = { title: title.trim().slice(0, LIMITS.course), exam_date: examDate || null, level, ...(language ? { language } : {}) };
+    if (toneText) {
+      // Same guard as profile instructions (Model Armor or local rules) before anything is uploaded.
+      try {
+        const res = await fetch("/api/profile/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ language: language || profile!.language, styles: profile!.styles, instructions: toneText }),
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          setBusy(false);
+          setError(t.courseForm.toneBlocked(data.armor?.reason ?? data.errors?.join(" ") ?? ""));
+          return setTab("course");
+        }
+      } catch {
+        setBusy(false);
+        return setError(t.common.networkError);
+      }
+    }
+    const settings = {
+      title: title.trim().slice(0, LIMITS.course),
+      exam_date: examDate || null,
+      level,
+      ...(language ? { language } : {}),
+      ...(toneText ? { tone: toneText } : {}),
+    };
     saveCourse(slug, settings);
     const out: string[] = [];
     for (const f of files) out.push((await uploadLecture(f.file, settings, profile!, t.upload, f.kind)).msg);
@@ -194,6 +228,53 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
               ))}
             </div>
           </fieldset>
+          <div>
+            <div className="mb-1 flex items-center gap-2">
+              <label htmlFor="tone" className="font-medium">
+                {t.courseForm.tone} <span className="text-sm font-normal text-muted">{t.common.optional}</span>
+              </label>
+              <button
+                type="button"
+                popoverTarget="tone-help"
+                aria-label={t.courseForm.toneHelp}
+                title={t.courseForm.toneHelp}
+                className="grid size-6 place-items-center rounded-full border border-border text-xs font-bold text-muted hover:border-accent hover:text-accent"
+              >
+                ?
+              </button>
+              <div id="tone-help" popover="auto" className="m-auto w-[min(90vw,480px)] rounded-xl border border-border p-5 text-sm shadow-xl backdrop:bg-black/40">
+                <p className="font-semibold">{t.courseForm.toneGuideTitle}</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  {t.courseForm.toneGuide.map((g) => (
+                    <li key={g}>{g}</li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-muted">{t.courseForm.toneSafety}</p>
+                <button type="button" popoverTarget="tone-help" popoverTargetAction="hide" className="mt-3 text-accent underline">
+                  {t.common.close}
+                </button>
+              </div>
+              <button type="button" onClick={() => setTone(t.courseForm.toneTemplate)} className="ml-auto text-sm text-accent underline">
+                {t.courseForm.useTemplate}
+              </button>
+            </div>
+            <textarea
+              id="tone"
+              rows={5}
+              maxLength={TONE_MAX}
+              className={input}
+              value={tone}
+              onChange={(e) => setTone(e.target.value)}
+              placeholder={t.courseForm.tonePlaceholder}
+              aria-describedby="tone-hint"
+            />
+            <p id="tone-hint" className="mt-1 flex justify-between gap-2 text-sm text-muted">
+              <span>{t.courseForm.toneHint}</span>
+              <span aria-live="polite">
+                {tone.length}/{TONE_MAX}
+              </span>
+            </p>
+          </div>
           {nav("course")}
         </TabsContent>
 
@@ -295,6 +376,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
                 [t.courseForm.review.course, title || "—", "course"],
                 [t.courseForm.review.examDate, examDate || "—", "course"],
                 [t.courseForm.review.level, t.levels[level], "course"],
+                [t.courseForm.review.tone, tone.trim() || "—", "course"],
                 [t.courseForm.review.language, language ? t.langNames[language] : t.courseForm.profileDefault(profile ? t.langNames[profile.language] : null), "language"],
                 [
                   t.courseForm.review.materials,

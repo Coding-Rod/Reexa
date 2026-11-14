@@ -47,6 +47,7 @@ export type CourseSettings = {
   exam_date: string | null;
   level: import("./profile").Level;
   language?: import("./profile").Language; // overrides the profile default
+  tone?: string; // course teaching-tone prompt (guard-checked); merged into the tutor instructions
 };
 const courseKey = (slug: string) => `tutor:course:${slug}`;
 export const loadCourse = (slug: string) => read<CourseSettings | null>(courseKey(slug), null);
@@ -86,7 +87,9 @@ export async function uploadLecture(
   const body = new FormData();
   body.append("file", file);
   if (kind) body.append("kind", kind);
-  const { styles, instructions } = profile;
+  const { styles } = profile;
+  // Profile instructions + course tone travel as one instructions string; the server re-checks it.
+  const instructions = [profile.instructions, course.tone].filter(Boolean).join("\n");
   const language = course.language ?? profile.language;
   body.append("profile", JSON.stringify({ course: course.title, exam_date: course.exam_date, level: course.level, language, styles, instructions }));
   try {
