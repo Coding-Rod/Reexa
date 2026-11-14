@@ -71,7 +71,7 @@ app.whenReady().then(() => {
   // External links go to the system browser, never inside the app window.
   win.webContents.setWindowOpenHandler(({ url }) => {
     // Firebase sign-in popups must stay in-app so the result returns to this window.
-    if (/\/__\/auth\/handler|^https:\/\/accounts\.google\.com\/|^https:\/\/github\.com\/login/.test(url)) return { action: "allow" };
+    if (/\/__\/auth\/handler|^https:\/\/accounts\.google\.com\//.test(url)) return { action: "allow" };
     shell.openExternal(url);
     return { action: "deny" };
   });

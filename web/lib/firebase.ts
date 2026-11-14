@@ -1,6 +1,6 @@
 "use client";
 import { getApps, initializeApp } from "firebase/app";
-import { getAuth, GithubAuthProvider, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Public web config (not secrets). Auth is optional: without config the app runs anonymously.
 const config = {
@@ -13,4 +13,4 @@ const config = {
 export const authEnabled = !!(config.apiKey && config.authDomain && config.projectId && config.appId);
 
 export const auth = authEnabled ? getAuth(getApps()[0] ?? initializeApp(config)) : null;
-export const providers = { google: new GoogleAuthProvider(), github: new GithubAuthProvider() };
+export const google = new GoogleAuthProvider();
