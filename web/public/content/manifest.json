@@ -1,0 +1,22 @@
+{
+  "course": {
+    "id": "db2",
+    "title": "Databases 2"
+  },
+  "lectures": [
+    {
+      "id": "02-concurrency",
+      "title": "Concurrency",
+      "source": "02-Concurrency.pdf",
+      "status": "ready",
+      "sections": [
+        {
+          "id": "s01",
+          "title": "View vs conflict serializability",
+          "duration": 139.1,
+          "path": "02-concurrency/s01"
+        }
+      ]
+    }
+  ]
+}
