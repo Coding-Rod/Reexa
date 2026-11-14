@@ -19,8 +19,7 @@ const FILTER_LABELS: Record<string, string> = {
 const input = "w-full rounded-lg border border-border bg-surface px-3 py-2 focus:border-accent focus:outline-none";
 
 export default function StartForm() {
-  const [name, setName] = useState("");
-  const [course, setCourse] = useState("Databases 2");
+  const [course, setCourse] = useState("");
   const [examDate, setExamDate] = useState("");
   const [level, setLevel] = useState<Level>("beginner");
   const [language, setLanguage] = useState<Language>("en");
@@ -35,7 +34,6 @@ export default function StartForm() {
     if (!p) return;
     // Prefill from this browser's saved profile after mount (localStorage is client-only).
     /* eslint-disable react-hooks/set-state-in-effect -- one-time hydration from localStorage */
-    setName(p.name ?? "");
     setCourse(p.course);
     setExamDate(p.exam_date ?? "");
     setLevel(p.level);
@@ -52,7 +50,6 @@ export default function StartForm() {
     setErrors([]);
     setArmor(null);
     try {
-      // No name in the request: it never leaves this browser.
       const res = await fetch("/api/profile/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,7 +58,7 @@ export default function StartForm() {
       const data = await res.json();
       if (data.errors) setErrors(data.errors);
       if (data.armor) setArmor(data.armor);
-      if (data.ok) saveProfile({ ...data.profile, name: name.trim().slice(0, LIMITS.name) });
+      if (data.ok) saveProfile(data.profile);
     } catch {
       setErrors(["Could not reach the server. Try again."]);
     } finally {
@@ -81,20 +78,12 @@ export default function StartForm() {
       </p>
 
       <form onSubmit={submit} className="mt-8 space-y-6">
-        <div>
-          <label htmlFor="name" className="mb-1 block font-medium">
-            Name <span className="text-sm font-normal text-muted">(optional)</span>
-          </label>
-          <input id="name" className={input} maxLength={LIMITS.name} value={name} onChange={(e) => setName(e.target.value)} autoComplete="given-name" />
-          <p className="mt-1 text-sm text-muted">Your name stays in your browser and is never sent to the server or to any AI.</p>
-        </div>
-
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="course" className="mb-1 block font-medium">
               Course
             </label>
-            <input id="course" required className={input} maxLength={LIMITS.course} value={course} onChange={(e) => setCourse(e.target.value)} />
+            <input id="course" required className={input} maxLength={LIMITS.course} value={course} onChange={(e) => setCourse(e.target.value)} placeholder="e.g. Databases 2" />
           </div>
           <div>
             <label htmlFor="exam" className="mb-1 block font-medium">

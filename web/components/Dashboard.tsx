@@ -1,4 +1,5 @@
 "use client";
+import { useUser } from "@/components/AuthButton";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { loadProfile, loadProgress, type LocalProfile, type Progress } from "@/lib/store";
@@ -24,6 +25,7 @@ function daysLeft(date?: string | null) {
 }
 
 export default function Dashboard() {
+  const firstName = useUser()?.displayName?.split(" ")[0];
   const [rows, setRows] = useState<Row[] | null>(null);
   const [progress, setProgress] = useState<Progress>({});
   const [profile, setProfile] = useState<LocalProfile | null>(null);
@@ -76,7 +78,7 @@ export default function Dashboard() {
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
       <header className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">
-          {profile?.name ? `${profile.name}'s progress` : "My progress"}
+          {firstName ? `${firstName}'s progress` : "My progress"}
         </h1>
         {days !== null && (
           <p className="mt-1 text-muted">
