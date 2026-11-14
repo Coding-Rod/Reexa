@@ -1,0 +1,184 @@
+WEBVTT
+
+00:00:00.092 --> 00:00:03.618
+Many transactions run at the same time, so
+
+00:00:03.632 --> 00:00:05.684
+we need a simple model to reason about
+
+00:00:05.697 --> 00:00:05.947
+them.
+
+00:00:06.474 --> 00:00:07.960
+Theory gives us that model.
+
+00:00:08.395 --> 00:00:11.026
+Real databases then use locks and
+
+00:00:11.039 --> 00:00:13.526
+snapshots to get the properties the theory
+
+00:00:13.526 --> 00:00:14.276
+describes.
+
+00:00:15.106 --> 00:00:18.067
+An operation is one transaction reading or
+
+00:00:18.080 --> 00:00:19.001
+writing one datum.
+
+00:00:19.409 --> 00:00:22.053
+A schedule is a sequence that mixes the
+
+00:00:22.067 --> 00:00:24.961
+operations of several transactions, while
+
+00:00:24.975 --> 00:00:27.396
+keeping each transaction's own order.
+
+00:00:27.843 --> 00:00:31.001
+Here T1 works on x and T2 works on z.
+
+00:00:31.837 --> 00:00:33.850
+With these two small transactions there
+
+00:00:33.850 --> 00:00:35.574
+are six possible schedules.
+
+00:00:35.995 --> 00:00:37.074
+Two are serial:
+
+00:00:37.535 --> 00:00:40.127
+one transaction runs completely, then the
+
+00:00:40.140 --> 00:00:40.574
+other.
+
+00:00:41.008 --> 00:00:43.706
+The other four interleave the operations
+
+00:00:43.785 --> 00:00:44.811
+in different ways.
+
+00:00:45.664 --> 00:00:47.625
+How many schedules exist in general?
+
+00:00:48.059 --> 00:00:50.296
+Serial ones are just the orderings of the
+
+00:00:50.296 --> 00:00:51.257
+transactions.
+
+00:00:51.678 --> 00:00:54.428
+Distinct schedules count all valid mixes
+
+00:00:54.428 --> 00:00:56.572
+of operations, which is far bigger.
+
+00:00:57.007 --> 00:00:57.388
+Check it:
+
+00:00:57.901 --> 00:01:00.506
+two transactions with two operations each
+
+00:01:00.520 --> 00:01:04.441
+give 4 factorial over 2 times 2, which is
+
+00:01:04.441 --> 00:01:05.059
+6.
+
+00:01:05.897 --> 00:01:07.700
+The scheduler's goal is to reject
+
+00:01:07.713 --> 00:01:09.674
+schedules that cause anomalies.
+
+00:01:10.095 --> 00:01:13.055
+A serial schedule is safe but unrealistic.
+
+00:01:13.489 --> 00:01:15.818
+So we accept any schedule that leaves the
+
+00:01:15.831 --> 00:01:18.700
+database in the same state as some serial
+
+00:01:18.700 --> 00:01:19.239
+schedule.
+
+00:01:19.660 --> 00:01:21.305
+That is called serializable.
+
+00:01:22.135 --> 00:01:25.017
+View-serializability makes this precise.
+
+00:01:25.451 --> 00:01:28.438
+Two schedules are view-equivalent if every
+
+00:01:28.438 --> 00:01:31.425
+read sees the same write and the final
+
+00:01:31.425 --> 00:01:33.688
+write on each object is the same.
+
+00:01:34.109 --> 00:01:37.425
+In S3, two reads on x are swapped compared
+
+00:01:37.425 --> 00:01:40.359
+with serial S4, so S3 is
+
+00:01:40.372 --> 00:01:41.530
+view-serializable.
+
+00:01:42.357 --> 00:01:43.397
+Now a bad case.
+
+00:01:43.818 --> 00:01:47.555
+In S7 both transactions read x, then both
+
+00:01:47.568 --> 00:01:48.410
+write x.
+
+00:01:48.713 --> 00:01:50.726
+Try T1 then T2:
+
+00:01:51.239 --> 00:01:53.989
+T2's read would see T1's write, but here
+
+00:01:53.989 --> 00:01:55.620
+it sees the original value.
+
+00:01:56.055 --> 00:01:59.726
+Try T2 then T1 and T1's read breaks the
+
+00:01:59.739 --> 00:02:00.423
+same way.
+
+00:02:00.857 --> 00:02:03.660
+So S7 is a lost update and is not
+
+00:02:03.660 --> 00:02:04.870
+view-serializable.
+
+00:02:05.723 --> 00:02:06.513
+There is a catch.
+
+00:02:06.947 --> 00:02:09.197
+Deciding whether an arbitrary schedule is
+
+00:02:09.197 --> 00:02:12.368
+view-serializable is NP-complete, because
+
+00:02:12.368 --> 00:02:14.486
+it means checking many possible serial
+
+00:02:14.486 --> 00:02:15.026
+orders.
+
+00:02:15.447 --> 00:02:18.263
+So we trade some accuracy for speed, and
+
+00:02:18.263 --> 00:02:20.065
+look for a stricter definition that is
+
+00:02:20.144 --> 00:02:21.184
+easier to check.

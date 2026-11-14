@@ -9,12 +9,40 @@
       "title": "Concurrency",
       "source": "02-Concurrency.pdf",
       "status": "ready",
+      "language": "en",
       "sections": [
         {
           "id": "s01",
-          "title": "View vs conflict serializability",
-          "duration": 139.1,
+          "title": "Concurrency Control: Why Parallel Transactions Can Go Wrong",
+          "duration": 141.93,
           "path": "02-concurrency/s01"
+        },
+        {
+          "id": "s02",
+          "title": "Schedules and View-Serializability: When Is Interleaving Safe?",
+          "duration": 141.9,
+          "path": "02-concurrency/s02"
+        }
+      ]
+    },
+    {
+      "id": "03-triggers",
+      "title": "Triggers",
+      "source": "03_Triggers.pdf",
+      "status": "ready",
+      "language": "en",
+      "sections": [
+        {
+          "id": "s01",
+          "title": "Triggers: Making a Database React on Its Own",
+          "duration": 103.08,
+          "path": "03-triggers/s01"
+        },
+        {
+          "id": "s02",
+          "title": "SQL Triggers: When and How They Fire",
+          "duration": 121.41,
+          "path": "03-triggers/s02"
         }
       ]
     }

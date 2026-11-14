@@ -1,0 +1,181 @@
+{
+  "id": "s02",
+  "lecture_id": "02-concurrency",
+  "title": "Schedules and View-Serializability: When Is Interleaving Safe?",
+  "video": "/content/02-concurrency/s02/video.mp4",
+  "captions": "/content/02-concurrency/s02/captions.vtt",
+  "duration": 141.9,
+  "transcript": [
+    {
+      "start": 0.0,
+      "end": 14.66,
+      "text": "Many transactions run at the same time, so we need a simple model to reason about them. Theory gives us that model. Real databases then use locks and snapshots to get the properties the theory describes."
+    },
+    {
+      "start": 15.01,
+      "end": 31.38,
+      "text": "An operation is one transaction reading or writing one datum. A schedule is a sequence that mixes the operations of several transactions, while keeping each transaction's own order. Here T1 works on x and T2 works on z."
+    },
+    {
+      "start": 31.73,
+      "end": 45.2,
+      "text": "With these two small transactions there are six possible schedules. Two are serial: one transaction runs completely, then the other. The other four interleave the operations in different ways."
+    },
+    {
+      "start": 45.55,
+      "end": 65.44,
+      "text": "How many schedules exist in general? Serial ones are just the orderings of the transactions. Distinct schedules count all valid mixes of operations, which is far bigger. Check it: two transactions with two operations each give 4 factorial over 2 times 2, which is 6."
+    },
+    {
+      "start": 65.79,
+      "end": 81.68,
+      "text": "The scheduler's goal is to reject schedules that cause anomalies. A serial schedule is safe but unrealistic. So we accept any schedule that leaves the database in the same state as some serial schedule. That is called serializable."
+    },
+    {
+      "start": 82.03,
+      "end": 101.9,
+      "text": "View-serializability makes this precise. Two schedules are view-equivalent if every read sees the same write and the final write on each object is the same. In S3, two reads on x are swapped compared with serial S4, so S3 is view-serializable."
+    },
+    {
+      "start": 102.25,
+      "end": 125.27,
+      "text": "Now a bad case. In S7 both transactions read x, then both write x. Try T1 then T2: T2's read would see T1's write, but here it sees the original value. Try T2 then T1 and T1's read breaks the same way. So S7 is a lost update and is not view-serializable."
+    },
+    {
+      "start": 125.62,
+      "end": 141.55,
+      "text": "There is a catch. Deciding whether an arbitrary schedule is view-serializable is NP-complete, because it means checking many possible serial orders. So we trade some accuracy for speed, and look for a stricter definition that is easier to check."
+    }
+  ],
+  "notes_md": "## Key ideas\n- A **model** purposely ignores details to simplify study. Real systems use locks and snapshots to achieve the properties the theory describes, and a DBMS has no view or conflict serializability checker [02-Concurrency.pdf p.15].\n- An **operation** is a read or write of a specific datum by a specific transaction. A **schedule** is a sequence of operations from concurrent transactions that respects each transaction's own order [02-Concurrency.pdf p.16].\n- Two transactions with two operations each have N=6 schedules, 2 of them serial [02-Concurrency.pdf p.17]. In general N_S = n! and N_D = (sum k_i)! / prod (k_i!), so N_S << N_D [02-Concurrency.pdf p.18].\n- A **serial** schedule keeps each transaction's actions contiguous [02-Concurrency.pdf p.19]. A **serializable** schedule leaves the database in the same state as some serial schedule [02-Concurrency.pdf p.20].\n- **View-equivalence** needs the same operations, the same reads-from relationship and the same final writes. A schedule is view-serializable (VSR) if it is view-equivalent to a serial schedule [02-Concurrency.pdf p.22].\n- Deciding whether a schedule is in VSR is NP-complete. This motivates a stricter, easier-to-check definition [02-Concurrency.pdf p.30].\n\n## Worked example\n- S3: w0(x) r2(x) r1(x) w2(x) w2(z) only swaps two reads on x compared with serial S4: w0(x) r1(x) r2(x) w2(x) w2(z). So S3 is view-equivalent to S4 and is view-serializable [02-Concurrency.pdf p.24].\n- S7: r1(x) r2(x) w1(x) w2(x) is a lost update and is not view-serializable. Test it against the orders T1,T2 and T2,T1 [02-Concurrency.pdf p.25].\n\n## Watch out\n- Serializable does not mean serial: the schedule may be interleaved, as long as its outcome matches some serial schedule [02-Concurrency.pdf p.20].\n- Operations such as r1(x) and r2(x), or r1(x) and r1(y), are different operations [02-Concurrency.pdf p.16].\n- A stricter, faster criterion may reject schedules that view-serializability would accept [02-Concurrency.pdf p.30].",
+  "citations": [
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 15,
+      "quote": "Look instead for lock tables, lock types, lock granting rules,"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 16,
+      "quote": "S1: r1(x) r2(z) w1(x) w2(z)"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 17,
+      "quote": "How many distinct schedules exist for two"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 18,
+      "quote": "NS << ND"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 19,
+      "quote": "Serial schedule: a schedule in which the actions of"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 20,
+      "quote": "A schedule that leaves the database in the same state as"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 22,
+      "quote": "A schedule is view-serializable if it is view-equivalent to a serial schedule"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 24,
+      "quote": "S3 is view-equivalent to serial schedule S4"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 25,
+      "quote": "S7 corresponds to a lost update"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 30,
+      "quote": "We look for a stricter definition that is easier to check"
+    }
+  ],
+  "jury": {
+    "verdict": "pass",
+    "reason": "The narration, notes, and quiz are supported by the cited slides. The schedule examples (S3/S4, S7 lost update), the counting formula and worked numbers (6 schedules; 10 for 3+2 operations), and the quiz answer keys are all correct. The citation quotes appear on the cited pages, and the output is in English.",
+    "model": "anthropic/claude-haiku-5.5",
+    "attempts": 1
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "concept": "serializable-vs-serial",
+      "question": "Which statement about a serializable schedule is correct?",
+      "options": [
+        "It must run each transaction in one contiguous block",
+        "It may interleave operations, as long as the result matches some serial schedule",
+        "It never contains reads and writes on the same object",
+        "It is always the same as every serial schedule"
+      ],
+      "answer_index": 1,
+      "explanation": "Serializable only requires that the database ends in the same state as some serial schedule. Serial schedules are the ones with contiguous transactions, and the slides call them good but unrealistic.",
+      "citations": [
+        {
+          "file": "02-Concurrency.pdf",
+          "page": 20,
+          "quote": "A schedule that leaves the database in the same state as"
+        },
+        {
+          "file": "02-Concurrency.pdf",
+          "page": 19,
+          "quote": "Serial schedule: a schedule in which the actions of"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "concept": "counting-distinct-schedules",
+      "question": "T1 has 3 operations and T2 has 2 operations. Using the slide's formula, how many distinct schedules exist?",
+      "options": [
+        "120",
+        "12",
+        "10",
+        "2"
+      ],
+      "answer_index": 2,
+      "explanation": "N_D = (3+2)! / (3! * 2!) = 120 / 12 = 10, because only one ordering of each transaction's own operations is valid. 120 forgets to divide, 12 is only the product of the factorials, and 2 is the number of serial schedules (n!).",
+      "citations": [
+        {
+          "file": "02-Concurrency.pdf",
+          "page": 18,
+          "quote": "NS << ND"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "concept": "view-equivalence-reads-from",
+      "question": "S8 = r1(x) r2(x) w2(x) r1(x) is not view-serializable. What is the underlying reason?",
+      "options": [
+        "T1 and T2 access different objects",
+        "Neither T1,T2 nor T2,T1 gives both reads of T1 the same reads-from as in S8",
+        "The schedule contains too few operations to compare",
+        "It is a serial schedule, so it cannot be serializable"
+      ],
+      "answer_index": 1,
+      "explanation": "In S8 the first r1(x) reads the initial value and the second reads from w2(x). In T1,T2 both reads would see the initial value. In T2,T1 both would see w2(x). So no serial order has the same reads-from relationship, which is a non-repeatable read.",
+      "citations": [
+        {
+          "file": "02-Concurrency.pdf",
+          "page": 25,
+          "quote": "S8 corresponds to a non-repeatable read"
+        },
+        {
+          "file": "02-Concurrency.pdf",
+          "page": 22,
+          "quote": "A schedule is view-serializable if it is view-equivalent to a serial schedule"
+        }
+      ]
+    }
+  ]
+}

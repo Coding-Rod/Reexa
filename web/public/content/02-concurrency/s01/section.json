@@ -1,154 +1,169 @@
 {
   "id": "s01",
   "lecture_id": "02-concurrency",
-  "title": "View vs conflict serializability",
+  "title": "Concurrency Control: Why Parallel Transactions Can Go Wrong",
   "video": "/content/02-concurrency/s01/video.mp4",
   "captions": "/content/02-concurrency/s01/captions.vtt",
-  "duration": 139.1,
+  "duration": 141.93,
   "transcript": [
     {
       "start": 0.0,
-      "end": 16.01,
-      "text": "Two transactions run at the same time. When is their interleaving still correct? The course gives two answers: view-serializability and conflict-serializability. They are not the same thing, and the difference is a classic exam trap."
+      "end": 11.11,
+      "text": "A database serves many users at the same time. The concurrency control system has to run their transactions together, avoid anomalies, and still keep performance high."
     },
     {
-      "start": 16.36,
-      "end": 31.09,
-      "text": "A schedule is serializable if it leaves the database in the same state as some serial schedule of the same transactions. To check that, we need a notion of equivalence, and each notion gives a different class of schedules."
+      "start": 11.46,
+      "end": 28.17,
+      "text": "Why not just run one transaction at a time? Because the goal is to exploit parallelism and get more transactions per second. Serial execution can limit throughput, especially when transactions wait for I/O, as in banks and ticket reservations."
     },
     {
-      "start": 31.44,
-      "end": 46.88,
-      "text": "View-equivalence asks for three things: the same operations, every read reads from the same write, and every object gets its final value from the same write. A schedule that is view-equivalent to a serial one is in VSR."
+      "start": 28.52,
+      "end": 45.8,
+      "text": "Here is our running example. Two transactions update the same account D, which starts at 100. One adds 3 and the other adds 6. If they run one after the other, the result is 109 in either order. This is the correct reference behaviour."
     },
     {
-      "start": 47.23,
-      "end": 60.95,
-      "text": "Conflict-serializability is stricter. Two operations conflict when they belong to different transactions, touch the same object, and at least one of them is a write. Two reads never conflict."
+      "start": 46.15,
+      "end": 65.73,
+      "text": "Now let both transactions read before either one writes. Each starts from 100. T1 writes 103, then T2 writes 106, and the plus 3 vanishes. Think of two people editing the same document from the same old copy, where the last save wins."
     },
     {
-      "start": 61.3,
-      "end": 75.3,
-      "text": "Take this schedule from the slides. T1 reads x, T2 writes x, T1 writes x, and T3 writes x. T2 and T1 write x without reading it first: these are blind writes."
+      "start": 66.08,
+      "end": 87.01,
+      "text": "A dirty read happens when a transaction reads a value that was never committed. T1 writes 103, T2 reads it, and then T1 rolls back. T2 has built its update on a value that never officially existed, so D ends at 109 instead of the correct 106."
     },
     {
-      "start": 75.65,
-      "end": 97.77,
-      "text": "Now build the conflict graph: one node per transaction, one arc for every conflicting pair, in order. r1 before w2 gives an arc from T1 to T2, and w2 before w1 gives an arc from T2 back to T1. That is a cycle, so the schedule is not conflict-serializable."
+      "start": 87.36,
+      "end": 100.05,
+      "text": "A non-repeatable read means you read the same item twice and get different answers. T1 reads D, T2 updates it in between, and when T1 reads again the two values differ."
     },
     {
-      "start": 98.12,
-      "end": 120.56,
-      "text": "Yet compare it with the serial schedule T1, T2, T3. T1 still reads the initial value of x, and T3 still writes the final value. Same reads-from, same final write: the schedule is view-serializable. The blind writes in the middle are overwritten, so their order does not matter to anyone."
+      "start": 100.4,
+      "end": 124.86,
+      "text": "Phantoms are subtler. In a phantom update, the three values A, B and C must always sum to 100. T2 moves 10 from C to B, which is legal. But T1 read A and B before the move and C after it, so it sees a sum of 90. In a phantom insert, a new row appears that matches an earlier query of T1."
     },
     {
-      "start": 120.91,
-      "end": 138.75,
-      "text": "So every conflict-serializable schedule is view-serializable, but not the other way around. A cycle in the conflict graph rules out CSR, not VSR. Deciding VSR is much harder, which is why real schedulers rely on the conflict test."
+      "start": 125.21,
+      "end": 141.58,
+      "text": "To recap, there are five anomalies: lost update, dirty read, non-repeatable read, phantom update and phantom insert. In each one, another transaction interferes with what a transaction has read or is about to write."
     }
   ],
-  "notes_md": "## Key ideas\n- **Serializable schedule**: leaves the database in the same state as some serial schedule of the same transactions [02-Concurrency.pdf p.20].\n- **View-equivalence**: same operations, same *reads-from* relation, same *final writes*. VSR = schedules view-equivalent to a serial one [02-Concurrency.pdf p.22].\n- **Conflict**: two operations of different transactions on the same object, at least one a write (r-w, w-r, w-w). Two reads never conflict [02-Concurrency.pdf p.32].\n- **Conflict graph**: one node per transaction, an arc Ti → Tj when an operation of Ti conflicts with and precedes one of Tj. S ∈ CSR ⇔ the graph is acyclic [02-Concurrency.pdf p.37].\n- **CSR ⊂ VSR**: every CSR schedule is VSR, not the converse [02-Concurrency.pdf p.34].\n\n## Worked example\n`r1(x) w2(x) w1(x) w3(x)` has the cycle T1 → T2 → T1, so it is **not CSR**. It is still **VSR**: it is view-equivalent to the serial T1 T2 T3, because the blind writes w2(x), w1(x) are overwritten by w3(x) [02-Concurrency.pdf p.41].\n\n## Watch out\n- A cycle in the conflict graph rules out CSR, **not** VSR.\n- Deciding VSR is computationally hard; schedulers use conflict-based tests [02-Concurrency.pdf p.30].\n",
+  "notes_md": "## Key ideas\n- The Concurrency Control System manages the simultaneous execution of transactions, avoids anomalies, and ensures performance [02-Concurrency.pdf p.2].\n- The goal of concurrency is to exploit parallelism to maximise transactions per second [02-Concurrency.pdf p.3]. Serial execution can limit throughput, particularly when transactions wait for I/O [02-Concurrency.pdf p.6].\n- Executions can be serial, interleaved or nested [02-Concurrency.pdf p.7].\n- Anomalies [02-Concurrency.pdf p.14]:\n  - **Lost update**: an update is applied from a state that ignores a preceding update.\n  - **Dirty read**: an uncommitted value is used to update the data.\n  - **Non-repeatable read**: someone else updates a previously read value.\n  - **Phantom update**: someone else updates data that contributes to a previously valid constraint.\n  - **Phantom insert**: someone else inserts data that contributes to a previously read datum.\n\n## Worked example\n- D starts at 100. T1 adds 3 and T2 adds 6. Serially, D goes 100, then 103, then 109 [02-Concurrency.pdf p.5].\n- Interleaved as r1, r2, w1, w2, both transactions start from the same value. T1 writes 103, T2 writes 106, and the update of T1 is lost [02-Concurrency.pdf p.8].\n- Dirty read: T1 writes D=103, T2 reads it, then T1 rolls back. T2 then writes D=109, which is wrong [02-Concurrency.pdf p.10].\n- Phantom update: with A=50, B=30, C=20, T2 moves 10 from C to B. T1 then sees x+y+z = 90 [02-Concurrency.pdf p.12].\n\n## Watch out\n- A write followed by another write is not automatically an anomaly. w1(D), w2(D) is fine, and so is r1(D), w1(D), w2(D). The problem is both transactions reading the same initial value before either writes [02-Concurrency.pdf p.8].\n- The final value alone does not tell you whether a run was correct. Look at the order of reads and writes [02-Concurrency.pdf p.5].\n- A phantom insert does not depend on data already in the DB. It comes from a new tuple inserted by someone else [02-Concurrency.pdf p.13].",
   "citations": [
     {
       "file": "02-Concurrency.pdf",
-      "page": 20,
-      "quote": "A schedule that leaves the database in the same state as some serial schedule of the same transactions"
+      "page": 2,
+      "quote": "Manages the simultaneous execution of transactions"
     },
     {
       "file": "02-Concurrency.pdf",
-      "page": 22,
-      "quote": "Two schedules are view-equivalent if: they have 1) the same operations, 2) the same reads-from relationship, and 3) the same final writes"
+      "page": 3,
+      "quote": "exploit parallelism to maximise transactions"
     },
     {
       "file": "02-Concurrency.pdf",
-      "page": 32,
-      "quote": "Two operations oi and oj (i ≠ j) are in conflict if they address the same resource and at least one of them is a write"
+      "page": 5,
+      "quote": "Initially D0=100"
     },
     {
       "file": "02-Concurrency.pdf",
-      "page": 34,
-      "quote": "all conflict-serializable schedules are also view-serializable, but the converse is not necessarily true"
+      "page": 6,
+      "quote": "Serial execution can limit throughput, particularly when"
     },
     {
       "file": "02-Concurrency.pdf",
-      "page": 37,
-      "quote": "A schedule is in CSR if and only if its conflict graph is acyclic"
+      "page": 8,
+      "quote": "inconsistent updates from the same initial value"
     },
     {
       "file": "02-Concurrency.pdf",
-      "page": 41,
-      "quote": "r1(x) w2(x) w1(x) w3(x) it is VSR ... it is not CSR, due to the presence of the cycle"
+      "page": 10,
+      "quote": "uncommitted value"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 11,
+      "quote": "z <> x"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 12,
+      "quote": "Constraint: A+B+C=100, A=50, B=30, C=20"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 13,
+      "quote": "satisfies the conditions of a previous query of T1"
+    },
+    {
+      "file": "02-Concurrency.pdf",
+      "page": 14,
+      "quote": "Someone else inserts data that contributes to a previously"
     }
   ],
   "jury": {
     "verdict": "pass",
-    "reason": "All claims match the cited pages (20, 22, 30, 32, 34, 37, 41); narration does not reveal quiz answers; quiz answers are correct.",
-    "model": "openai/gpt-5.5",
+    "reason": "The content is accurate and grounded in the slides. The schedules, the lost-update, dirty-read, non-repeatable-read and phantom examples match the source, the quiz answer indices are correct and unambiguous, and the citation quotes appear on the cited pages. The narration does not reveal quiz answers, and the output is in English. The remaining issues are minor wording points, not factual errors.",
+    "model": "anthropic/claude-haiku-5.5",
     "attempts": 1
   },
   "quiz": [
     {
       "id": "q1",
-      "concept": "csr-vs-vsr",
-      "question": "The conflict graph of a schedule S contains a cycle. What can you conclude?",
+      "concept": "lost-update-condition",
+      "question": "Which statement best describes when a lost update occurs?",
       "options": [
-        "S is neither CSR nor VSR",
-        "S is not CSR, but it may still be VSR",
-        "S is VSR but not serial",
-        "S is CSR"
+        "Whenever two transactions write the same item, even in serial order",
+        "When both transactions read the same initial value before either one writes, so one update ignores the other",
+        "Only when the first transaction aborts after writing",
+        "Only when the second transaction commits before the first one"
       ],
       "answer_index": 1,
-      "explanation": "An acyclic conflict graph is equivalent to CSR, so a cycle rules out CSR. VSR is a larger class: r1(x) w2(x) w1(x) w3(x) has a cycle and is still VSR.",
+      "explanation": "The slides say that w1(D), w2(D) and r1(D), w1(D), w2(D) are fine because they are serial. The bad case is r1, r2, w1, w2, where the updates are computed from the same initial value.",
       "citations": [
         {
           "file": "02-Concurrency.pdf",
-          "page": 34,
-          "quote": "the converse is not necessarily true"
-        },
-        {
-          "file": "02-Concurrency.pdf",
-          "page": 37,
-          "quote": "in CSR if and only if its conflict graph is acyclic"
+          "page": 8,
+          "quote": "inconsistent updates from the same initial value"
         }
       ]
     },
     {
       "id": "q2",
-      "concept": "conflict",
-      "question": "Which pair of operations is in conflict?",
+      "concept": "dirty-read",
+      "question": "T1 writes a new value to D, T2 reads that value, and then T1 rolls back. Why is T2's read a problem?",
       "options": [
-        "r1(x), r2(x)",
-        "r1(x), w1(x)",
-        "w1(x), r2(y)",
-        "r1(x), w2(x)"
+        "T2 read a value that was never committed, and it no longer exists after the rollback",
+        "T2 read the same item twice and got two different values",
+        "T2 read a row that was newly inserted by T1",
+        "T2 read the value before T1 had started"
       ],
-      "answer_index": 3,
-      "explanation": "A conflict needs different transactions, the same object, and at least one write. Only r1(x), w2(x) satisfies all three.",
+      "answer_index": 0,
+      "explanation": "This is a dirty read: T2 used an uncommitted value. After the rollback that value is gone, but T2's update is already based on it.",
       "citations": [
         {
           "file": "02-Concurrency.pdf",
-          "page": 32,
-          "quote": "same resource and at least one of them is a write"
+          "page": 10,
+          "quote": "uncommitted value"
         }
       ]
     },
     {
       "id": "q3",
-      "concept": "view-equivalence",
-      "question": "Which condition is NOT required for two schedules to be view-equivalent?",
+      "concept": "phantom-insert",
+      "question": "T1 computes the average of B over rows with A=1. Then T2 inserts a new row with A=1, and T1 recomputes the average and gets a different result. Which anomaly is this?",
       "options": [
-        "Same operations",
-        "Same reads-from relation",
-        "Same final writes",
-        "Same order of all conflicting operations"
+        "Lost update",
+        "Dirty read",
+        "Non-repeatable read of an existing value",
+        "Phantom insert"
       ],
       "answer_index": 3,
-      "explanation": "Same order of conflicting operations defines conflict-equivalence, not view-equivalence.",
+      "explanation": "The change comes from a new tuple that satisfies T1's earlier query condition, not from a modified value that T1 had already read. That is a phantom insert.",
       "citations": [
         {
           "file": "02-Concurrency.pdf",
-          "page": 22,
-          "quote": "the same operations, the same reads-from relationship, and the same final writes"
+          "page": 13,
+          "quote": "satisfies the conditions of a previous query of T1"
         }
       ]
     }

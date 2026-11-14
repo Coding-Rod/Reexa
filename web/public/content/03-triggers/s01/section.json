@@ -1,0 +1,156 @@
+{
+  "id": "s01",
+  "lecture_id": "03-triggers",
+  "title": "Triggers: Making a Database React on Its Own",
+  "video": "/content/03-triggers/s01/video.mp4",
+  "captions": "/content/03-triggers/s01/captions.vtt",
+  "duration": 103.08,
+  "transcript": [
+    {
+      "start": 0.0,
+      "end": 10.68,
+      "text": "Most databases are passive: they sit and wait until you ask them something. Triggers turn them into active databases that can react to changes."
+    },
+    {
+      "start": 11.03,
+      "end": 19.77,
+      "text": "A trigger is a set of actions that the database runs when someone inserts, updates or deletes data in one specific table."
+    },
+    {
+      "start": 20.12,
+      "end": 40.95,
+      "text": "The story starts in 1975 with the idea of integrity constraints. Constraints became part of SQL-92, and triggers, also called active rules, arrived in SQL-99. Products support them in widely varying ways, with different execution semantics."
+    },
+    {
+      "start": 41.3,
+      "end": 60.69,
+      "text": "Every trigger follows the same recipe: when an event happens, if a condition is true, then do an action. The event is usually a change to the data. The condition is a test on the situation. The action is an update statement or a stored procedure, and it can also raise an error notification."
+    },
+    {
+      "start": 61.04,
+      "end": 78.1,
+      "text": "Here is an example with an Exam table. We want to keep a log of alerts when grades are updated. The event is an update of Grade in Exam, and the action is an insert into the Alerts table. The condition sits in the middle and decides whether an alert is really needed."
+    },
+    {
+      "start": 78.45,
+      "end": 88.49,
+      "text": "Triggers run in addition to integrity constraints, and they let you check more complex conditions. They are compiled and stored inside the DBMS."
+    },
+    {
+      "start": 88.84,
+      "end": 102.73,
+      "text": "Now the big picture. One UPDATE statement can change several rows, here two exam rows. The statement activates the rules, and each rule can look at the data before and after the change through transition variables."
+    }
+  ],
+  "notes_md": "## Key ideas\n- A trigger is a set of actions executed automatically when an INSERT, UPDATE or DELETE is performed on a specific table [03_Triggers.pdf p.3].\n- Triggers move databases \"from passive to active behaviors\" [03_Triggers.pdf p.3].\n- History: the idea of integrity constraints came in 1975, SQL-92 added constraints, and SQL-99 added triggers/active rules. Support varies between products [03_Triggers.pdf p.3].\n- Triggers follow the Event-Condition-Action (ECA) paradigm: whenever an event E occurs, if a condition C is true, then an action A is executed [03_Triggers.pdf p.4].\n- Event: normally a modification (insert, delete, update). Condition: a predicate that identifies when the action is required. Action: an update statement or a stored procedure, which can also include error notifications [03_Triggers.pdf p.5].\n- Triggers are executed in addition to integrity constraints and allow one to check complex conditions. They are compiled and stored in the DBMS [03_Triggers.pdf p.4].\n\n## Worked example\nTables: Student, Exam(StudID, CourseID, Date, Grade, ...), Alerts(TS, StudID). Goal: log an alert for the student if the Grade is updated [03_Triggers.pdf p.6].\n- E: update of Grade in Exam\n- C: new Grade <> the previous grade\n- A: insert into Alerts\n\nAn UPDATE that sets Grade to 30 for two exam rows activates the rules. The rule can use the old/new transition variables. Before, the grade was null in both rows; after, it is 30 [03_Triggers.pdf p.7].\n\n## Watch out\n- The condition decides whether the action runs. The event alone is not enough [03_Triggers.pdf p.4].\n- Support for triggers varies between products, with different execution semantics [03_Triggers.pdf p.3].\n- Triggers do not replace integrity constraints. They run in addition to them [03_Triggers.pdf p.4].",
+  "citations": [
+    {
+      "file": "03_Triggers.pdf",
+      "page": 3,
+      "quote": "From “passive” to “active” behaviors"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 3,
+      "quote": "SQL-99: triggers/active rules"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 4,
+      "quote": "Event-Condition-Action (ECA) paradigm"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 5,
+      "quote": "A predicate that identifies those situations in which the"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 6,
+      "quote": "C: New Grade <> from the previous grade"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 7,
+      "quote": "Transition variables/ tables"
+    }
+  ],
+  "jury": {
+    "verdict": "pass",
+    "reason": "All narration, notes, and quiz claims are supported by the cited slide pages. The quiz answer indices are correct, the citation quotes appear on their stated pages, the text is in English, and the narration does not reveal quiz answers. The only soft point is the opening framing that 'most databases are passive', which is a light paraphrase rather than a direct source claim.",
+    "model": "anthropic/claude-haiku-5.5",
+    "attempts": 2
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "concept": "trigger-condition",
+      "question": "In the Exam example, an UPDATE rewrites a Grade with exactly the same value it already had. What should the trigger do?",
+      "options": [
+        "Log nothing, because the condition is false even though the event occurred",
+        "Insert an alert, because any update event always runs the action",
+        "Raise an error notification and cancel the update",
+        "Delete the Exam row and then insert an alert"
+      ],
+      "answer_index": 0,
+      "explanation": "The condition is that the new grade differs from the previous grade. If the grade is unchanged, the condition is false and the action does not run, even though the update event occurred.",
+      "citations": [
+        {
+          "file": "03_Triggers.pdf",
+          "page": 6,
+          "quote": "C: New Grade <> from the previous grade"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "concept": "declarative-vs-procedural",
+      "question": "How are SQL-92 constraints specified compared with SQL-99 triggers?",
+      "options": [
+        "Both are procedural specifications",
+        "Constraints are procedural, triggers are declarative",
+        "Constraints are declarative, triggers are procedural",
+        "Both are declarative specifications"
+      ],
+      "answer_index": 2,
+      "explanation": "SQL-92 constraints (keys, referential integrity, domains) use a declarative specification, while SQL-99 triggers/active rules use a procedural specification.",
+      "citations": [
+        {
+          "file": "03_Triggers.pdf",
+          "page": 3,
+          "quote": "DECLARATIVE SPECIFICATION"
+        },
+        {
+          "file": "03_Triggers.pdf",
+          "page": 3,
+          "quote": "PROCEDURAL SPECIFICATION"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "concept": "transition-variables",
+      "question": "An UPDATE sets Grade to 30 for exam rows 12345 and 54321, where Grade was previously empty. What do the old and new transition values of Grade look like for row 12345?",
+      "options": [
+        "Old = 30, new = null",
+        "Old = null, new = 30",
+        "Old = 30, new = 30",
+        "Old = null, new = null"
+      ],
+      "answer_index": 1,
+      "explanation": "The database before the statement has a null grade for 12345, and after the statement it has 30. The old value is therefore null and the new value is 30.",
+      "citations": [
+        {
+          "file": "03_Triggers.pdf",
+          "page": 7,
+          "quote": "12345, 35, 10/09/20, null"
+        },
+        {
+          "file": "03_Triggers.pdf",
+          "page": 7,
+          "quote": "Transition variables/ tables"
+        }
+      ]
+    }
+  ]
+}

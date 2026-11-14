@@ -1,0 +1,133 @@
+WEBVTT
+
+00:00:00.105 --> 00:00:01.855
+Most databases are passive:
+
+00:00:02.289 --> 00:00:04.658
+they sit and wait until you ask them
+
+00:00:04.658 --> 00:00:05.132
+something.
+
+00:00:05.566 --> 00:00:08.500
+Triggers turn them into active databases
+
+00:00:08.500 --> 00:00:10.289
+that can react to changes.
+
+00:00:11.122 --> 00:00:12.885
+A trigger is a set of actions that the
+
+00:00:12.898 --> 00:00:15.398
+database runs when someone inserts,
+
+00:00:15.793 --> 00:00:18.977
+updates or deletes data in one specific
+
+00:00:18.991 --> 00:00:19.385
+table.
+
+00:00:20.221 --> 00:00:24.761
+The story starts in 1975 with the idea of
+
+00:00:24.761 --> 00:00:26.458
+integrity constraints.
+
+00:00:26.458 --> 00:00:30.340
+Constraints became part of SQL-92, and
+
+00:00:30.603 --> 00:00:32.195
+triggers, also called active rules,
+
+00:00:32.432 --> 00:00:34.866
+arrived in SQL-99.
+
+00:00:35.313 --> 00:00:37.879
+Products support them in widely varying
+
+00:00:37.879 --> 00:00:40.563
+ways, with different execution semantics.
+
+00:00:41.390 --> 00:00:44.035
+Every trigger follows the same recipe:
+
+00:00:44.522 --> 00:00:46.377
+when an event happens, if a condition is
+
+00:00:46.377 --> 00:00:48.311
+true, then do an action.
+
+00:00:48.732 --> 00:00:51.469
+The event is usually a change to the data.
+
+00:00:51.877 --> 00:00:54.153
+The condition is a test on the situation.
+
+00:00:54.574 --> 00:00:56.732
+The action is an update statement or a
+
+00:00:56.745 --> 00:00:59.311
+stored procedure, and it can also raise an
+
+00:00:59.324 --> 00:01:00.311
+error notification.
+
+00:01:01.172 --> 00:01:03.343
+Here is an example with an Exam table.
+
+00:01:03.764 --> 00:01:05.185
+We want to keep a log of alerts when
+
+00:01:05.185 --> 00:01:06.474
+grades are updated.
+
+00:01:06.908 --> 00:01:09.540
+The event is an update of Grade in Exam,
+
+00:01:10.066 --> 00:01:11.843
+and the action is an insert into the
+
+00:01:11.843 --> 00:01:12.632
+Alerts table.
+
+00:01:13.066 --> 00:01:15.329
+The condition sits in the middle and
+
+00:01:15.329 --> 00:01:17.724
+decides whether an alert is really needed.
+
+00:01:18.559 --> 00:01:21.020
+Triggers run in addition to integrity
+
+00:01:21.033 --> 00:01:23.296
+constraints, and they let you check more
+
+00:01:23.296 --> 00:01:24.599
+complex conditions.
+
+00:01:25.007 --> 00:01:27.125
+They are compiled and stored inside the
+
+00:01:27.138 --> 00:01:28.086
+DBMS.
+
+00:01:28.941 --> 00:01:29.902
+Now the big picture.
+
+00:01:30.336 --> 00:01:32.625
+One UPDATE statement can change several
+
+00:01:32.625 --> 00:01:34.889
+rows, here two exam rows.
+
+00:01:35.310 --> 00:01:37.757
+The statement activates the rules, and
+
+00:01:37.902 --> 00:01:40.047
+each rule can look at the data before and
+
+00:01:40.060 --> 00:01:41.625
+after the change through transition
+
+00:01:41.639 --> 00:01:42.362
+variables.

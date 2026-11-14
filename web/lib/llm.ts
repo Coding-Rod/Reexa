@@ -3,7 +3,10 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:
 
 export const LLM_MODEL = process.env.LLM_MODEL || "anthropic/claude-sonnet-5.5";
 export const JURY_MODEL = process.env.JURY_MODEL || "openai/gpt-5.5";
-export const llmEnabled = () => !!process.env.OPENROUTER_API_KEY && process.env.LLM_STUB !== "1";
+// Any OpenAI-compatible endpoint: OpenRouter (default) or a local Ollama (desktop app, LLM_BASE_URL=http://localhost:11434/v1).
+const BASE_URL = process.env.LLM_BASE_URL || "https://openrouter.ai/api/v1";
+const API_KEY = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY;
+export const llmEnabled = () => !!API_KEY && process.env.LLM_STUB !== "1";
 
 type Msg = { role: "system" | "user"; content: string };
 
@@ -19,20 +22,20 @@ function takeBudget() {
   calls.push(now);
 }
 
-// OpenRouter is OpenAI-compatible: plain fetch, no SDK.
+// OpenAI-compatible: plain fetch, no SDK.
 export async function chatJSON<T>(model: string, messages: Msg[]): Promise<T> {
   takeBudget();
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const res = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
       "X-Title": "AI on Campus Tutor",
     },
     body: JSON.stringify({ model, messages, response_format: { type: "json_object" }, temperature: 0.2 }),
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(120_000), // local models are slower
   });
-  if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) throw new Error(`LLM ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const data = await res.json();
   const text: string = data.choices?.[0]?.message?.content ?? "";
   // Some models wrap JSON in ``` fences despite response_format.

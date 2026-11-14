@@ -1,166 +1,160 @@
 WEBVTT
 
-00:00:00.105 --> 00:00:02.342
-Two transactions run at the same time.
+00:00:00.105 --> 00:00:02.789
+A database serves many users at the same
 
-00:00:02.763 --> 00:00:04.684
-When is their interleaving still correct?
+00:00:02.789 --> 00:00:03.184
+time.
 
-00:00:05.118 --> 00:00:07.092
-The course gives two answers:
+00:00:03.618 --> 00:00:06.026
+The concurrency control system has to run
 
-00:00:07.553 --> 00:00:09.303
-view-serializability and
+00:00:06.026 --> 00:00:08.053
+their transactions together, avoid
 
-00:00:09.316 --> 00:00:10.961
-conflict-serializability.
+00:00:08.053 --> 00:00:10.355
+anomalies, and still keep performance
 
-00:00:11.395 --> 00:00:13.447
-They are not the same thing, and the
+00:00:10.368 --> 00:00:10.737
+high.
 
-00:00:13.447 --> 00:00:15.618
-difference is a classic exam trap.
+00:00:11.567 --> 00:00:13.251
+Why not just run one transaction at a
 
-00:00:16.437 --> 00:00:18.897
-A schedule is serializable if it leaves
+00:00:13.265 --> 00:00:13.686
+time?
 
-00:00:18.897 --> 00:00:21.384
-the database in the same state as some
+00:00:14.107 --> 00:00:16.580
+Because the goal is to exploit parallelism
 
-00:00:21.384 --> 00:00:24.055
-serial schedule of the same transactions.
+00:00:16.791 --> 00:00:18.659
+and get more transactions per second.
 
-00:00:24.490 --> 00:00:26.397
-To check that, we need a notion of
+00:00:19.080 --> 00:00:21.699
+Serial execution can limit throughput,
 
-00:00:26.411 --> 00:00:29.148
-equivalence, and each notion gives a
+00:00:22.225 --> 00:00:25.041
+especially when transactions wait for I/O,
 
-00:00:29.161 --> 00:00:30.700
-different class of schedules.
+00:00:25.488 --> 00:00:27.765
+as in banks and ticket reservations.
 
-00:00:31.549 --> 00:00:34.418
-View-equivalence asks for three things:
+00:00:28.648 --> 00:00:30.305
+Here is our running example.
 
-00:00:34.852 --> 00:00:37.641
-the same operations, every read reads from
+00:00:30.727 --> 00:00:33.161
+Two transactions update the same account
 
-00:00:37.641 --> 00:00:40.102
-the same write, and every object gets its
+00:00:33.174 --> 00:00:35.069
+D, which starts at 100.
 
-00:00:40.115 --> 00:00:41.931
-final value from the same write.
+00:00:35.490 --> 00:00:37.898
+One adds 3 and the other adds 6.
 
-00:00:42.339 --> 00:00:44.365
-A schedule that is view-equivalent to a
+00:00:38.319 --> 00:00:40.148
+If they run one after the other, the
 
-00:00:44.365 --> 00:00:46.483
-serial one is in VSR.
+00:00:40.148 --> 00:00:43.095
+result is 109 in either order.
 
-00:00:47.331 --> 00:00:50.042
-Conflict-serializability is stricter.
+00:00:43.516 --> 00:00:45.398
+This is the correct reference behaviour.
 
-00:00:50.476 --> 00:00:53.134
-Two operations conflict when they belong
+00:00:46.238 --> 00:00:49.028
+Now let both transactions read before
 
-00:00:53.134 --> 00:00:55.594
-to different transactions, touch the same
+00:00:49.422 --> 00:00:50.488
+either one writes.
 
-00:00:55.608 --> 00:00:58.108
-object, and at least one of them is a
+00:00:50.909 --> 00:00:51.962
+Each starts from 100.
 
-00:00:58.121 --> 00:00:58.581
-write.
+00:00:52.383 --> 00:00:57.541
+T1 writes 103, then T2 writes 106, and the
 
-00:00:59.015 --> 00:01:00.568
-Two reads never conflict.
+00:00:57.554 --> 00:00:59.172
+plus 3 vanishes.
 
-00:01:01.409 --> 00:01:03.146
-Take this schedule from the slides.
+00:00:59.633 --> 00:01:01.804
+Think of two people editing the same
 
-00:01:03.567 --> 00:01:08.409
-T1 reads x, T2 writes x, T1 writes x, and
+00:01:01.804 --> 00:01:04.146
+document from the same old copy, where the
 
-00:01:08.422 --> 00:01:09.909
-T3 writes x.
+00:01:04.146 --> 00:01:05.343
+last save wins.
 
-00:01:10.225 --> 00:01:12.936
-T2 and T1 write x without reading it
+00:01:06.172 --> 00:01:08.790
+A dirty read happens when a transaction
 
-00:01:12.949 --> 00:01:13.462
-first:
+00:01:08.948 --> 00:01:11.488
+reads a value that was never committed.
 
-00:01:13.765 --> 00:01:14.909
-these are blind writes.
+00:01:11.909 --> 00:01:16.462
+T1 writes 103, T2 reads it, and then T1
 
-00:01:15.751 --> 00:01:17.804
-Now build the conflict graph:
+00:01:16.462 --> 00:01:17.238
+rolls back.
 
-00:01:18.093 --> 00:01:21.080
-one node per transaction, one arc for
+00:01:17.659 --> 00:01:20.343
+T2 has built its update on a value that
 
-00:01:21.264 --> 00:01:23.620
-every conflicting pair, in order.
+00:01:20.343 --> 00:01:24.238
+never officially existed, so D ends at 109
 
-00:01:24.041 --> 00:01:28.330
-r1 before w2 gives an arc from T1 to T2,
+00:01:24.383 --> 00:01:26.606
+instead of the correct 106.
 
-00:01:28.659 --> 00:01:32.172
-and w2 before w1 gives an arc from T2 back
+00:01:27.450 --> 00:01:29.805
+A non-repeatable read means you read the
 
-00:01:32.185 --> 00:01:32.804
-to T1.
+00:01:29.805 --> 00:01:32.503
+same item twice and get different answers.
 
-00:01:33.251 --> 00:01:35.988
-That is a cycle, so the schedule is not
+00:01:32.937 --> 00:01:36.911
+T1 reads D, T2 updates it in between, and
 
-00:01:35.988 --> 00:01:37.409
-conflict-serializable.
+00:01:36.924 --> 00:01:39.661
+when T1 reads again the two values differ.
 
-00:01:38.229 --> 00:01:39.900
-Yet compare it with the serial schedule
+00:01:40.575 --> 00:01:41.601
+Phantoms are subtler.
 
-00:01:39.913 --> 00:01:42.598
-T1, T2, T3.
+00:01:41.996 --> 00:01:45.588
+In a phantom update, the three values A, B
 
-00:01:43.006 --> 00:01:46.308
-T1 still reads the initial value of x, and
+00:01:45.851 --> 00:01:48.246
+and C must always sum to 100.
 
-00:01:46.321 --> 00:01:48.992
-T3 still writes the final value.
+00:01:48.667 --> 00:01:51.786
+T2 moves 10 from C to B, which is legal.
 
-00:01:49.413 --> 00:01:52.071
-Same reads-from, same final write:
+00:01:52.220 --> 00:01:56.351
+But T1 read A and B before the move and C
 
-00:01:52.624 --> 00:01:54.756
-the schedule is view-serializable.
+00:01:56.351 --> 00:01:58.641
+after it, so it sees a sum of 90.
 
-00:01:55.203 --> 00:01:56.742
-The blind writes in the middle are
+00:01:59.062 --> 00:02:01.904
+In a phantom insert, a new row appears
 
-00:01:56.848 --> 00:01:59.150
-overwritten, so their order does not
+00:02:01.904 --> 00:02:04.470
+that matches an earlier query of T1.
 
-00:01:59.163 --> 00:02:00.163
-matter to anyone.
+00:02:05.302 --> 00:02:07.934
+To recap, there are five anomalies:
 
-00:02:01.019 --> 00:02:03.861
-So every conflict-serializable schedule is
+00:02:08.355 --> 00:02:11.381
+lost update, dirty read, non-repeatable
 
-00:02:03.875 --> 00:02:06.559
-view-serializable, but not the other way
+00:02:11.381 --> 00:02:14.157
+read, phantom update and phantom insert.
 
-00:02:06.559 --> 00:02:07.059
-around.
+00:02:14.578 --> 00:02:17.131
+In each one, another transaction
 
-00:02:07.467 --> 00:02:09.506
-A cycle in the conflict graph rules out
+00:02:17.144 --> 00:02:19.434
+interferes with what a transaction has
 
-00:02:09.519 --> 00:02:11.809
-CSR, not VSR.
-
-00:02:12.230 --> 00:02:15.638
-Deciding VSR is much harder, which is why
-
-00:02:15.651 --> 00:02:18.361
-real schedulers rely on the conflict test.
+00:02:19.434 --> 00:02:21.210
+read or is about to write.

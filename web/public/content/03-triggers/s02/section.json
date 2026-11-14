@@ -1,0 +1,161 @@
+{
+  "id": "s02",
+  "lecture_id": "03-triggers",
+  "title": "SQL Triggers: When and How They Fire",
+  "video": "/content/03-triggers/s02/video.mp4",
+  "captions": "/content/03-triggers/s02/captions.vtt",
+  "duration": 121.41,
+  "transcript": [
+    {
+      "start": 0.0,
+      "end": 11.54,
+      "text": "A trigger is a rule stored in the database. It watches for a change to a table and then reacts automatically. Let's see how SQL:1999 describes one."
+    },
+    {
+      "start": 11.89,
+      "end": 28.86,
+      "text": "Every trigger has three parts. The event says which change to watch: an insert, a delete or an update on a table. The condition is an optional when clause. The action is an SQL procedural statement that runs if the condition holds."
+    },
+    {
+      "start": 29.21,
+      "end": 47.74,
+      "text": "You also choose when the trigger runs. A before trigger runs ahead of the change, so it can check a modification and shape its effect. It is not allowed to update the database directly. It can only adjust the values of the row being written, with a statement like set new dot t equals an expression."
+    },
+    {
+      "start": 48.09,
+      "end": 59.01,
+      "text": "An after trigger runs once the change has been made. This is the most common mode and suits most applications. Follow the flow from the statement to the final trigger."
+    },
+    {
+      "start": 59.36,
+      "end": 74.31,
+      "text": "Next is granularity. With row-level granularity, the trigger is considered once for every row the statement touches. Think of a guard checking each person who walks through a door. It is simpler to write, but it can be less efficient."
+    },
+    {
+      "start": 74.66,
+      "end": 89.13,
+      "text": "With statement-level granularity, the trigger is considered once for the whole activating statement, however many rows are affected. This is closer to how SQL normally works, on whole sets of rows at a time."
+    },
+    {
+      "start": 89.48,
+      "end": 107.68,
+      "text": "Triggers can look at the data before and after the change through transition variables. In a row-level trigger, old and new are tuple variables holding one row's values before and after. In a statement-level trigger, old table and new table hold all the affected rows."
+    },
+    {
+      "start": 108.03,
+      "end": 121.06,
+      "text": "Some variables don't exist for every event. An insert has no earlier version of the row, and a delete has no later version. So think about which event your trigger watches before you use these variables."
+    }
+  ],
+  "notes_md": "## Key ideas\n- A trigger is declared with `create trigger <TriggerName>`. It has an **Event** (insert, delete or update on a table), an optional **Condition** (`when`) and an **Action** (an SQL procedural statement) [03_Triggers.pdf p.8].\n- **BEFORE** triggers run before the database change, if the condition holds. They are used to validate a modification and possibly condition its effect [03_Triggers.pdf p.9].\n- **AFTER** triggers run after the modification. This is the most common mode [03_Triggers.pdf p.10].\n- **Row-level** (`for each row`): the trigger is considered once per affected tuple. It is simpler to write but can be less efficient [03_Triggers.pdf p.11].\n- **Statement-level** (`for each statement`): the trigger is considered once per activating statement, even if no tuple is affected [03_Triggers.pdf p.12].\n- **Transition variables**: row-level triggers use the tuple variables `old` and `new`. Statement-level triggers use the table variables `old table` and `new table` [03_Triggers.pdf p.13].\n\n## Worked example\nThe slides give the trigger skeleton rather than a full example. A BEFORE trigger with row-level granularity can change the row being written with `set new.t = <expr>` [03_Triggers.pdf p.9]. The skeleton is built from `create trigger`, `before` or `after`, an event `on` a table, `for each row` or `for each statement`, an optional `when`, and an action [03_Triggers.pdf p.8]. Because the trigger is row-level, `new` stands for the row under consideration [03_Triggers.pdf p.13].\n\n## Watch out\n- A BEFORE trigger cannot update the database directly. It can only affect the transition variables at row-level granularity [03_Triggers.pdf p.9].\n- A statement-level trigger runs once per statement, even if no row is affected [03_Triggers.pdf p.12].\n- `old` and `old table` are undefined for insert. `new` and `new table` are undefined for delete [03_Triggers.pdf p.13].",
+  "citations": [
+    {
+      "file": "03_Triggers.pdf",
+      "page": 8,
+      "quote": "create trigger <TriggerName>"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 8,
+      "quote": "[ when <Condition> ]"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 9,
+      "quote": "Used to validate a modification before it takes place and"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 9,
+      "quote": "set new.t = <expr>"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 10,
+      "quote": "It is the most common mode, suitable for most"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 11,
+      "quote": "Writing row-level triggers is simpler, but can be less"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 12,
+      "quote": "no tuple is affected!"
+    },
+    {
+      "file": "03_Triggers.pdf",
+      "page": 13,
+      "quote": "Variables new and new table are undefined in triggers"
+    }
+  ],
+  "jury": {
+    "verdict": "pass",
+    "reason": "All citations quote text that appears on the cited pages, the quiz answer indices are correct and unambiguous, and the content stays within the slides. The narration teaches the concepts without giving away the quiz answers. The only issue is a minor unsourced explanation of why variables are undefined.",
+    "model": "anthropic/claude-haiku-5.5",
+    "attempts": 1
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "concept": "statement-level-granularity",
+      "question": "An UPDATE statement matches zero rows of the target table. A statement-level trigger is defined on that update. What happens?",
+      "options": [
+        "The trigger is still considered once for the statement",
+        "The trigger is not considered, because no row was affected",
+        "The trigger is considered once for each row in the table",
+        "The trigger raises an error because new table is empty"
+      ],
+      "answer_index": 0,
+      "explanation": "A statement-level trigger is considered once per activating statement, independently of the number of affected tuples, even if none are affected.",
+      "citations": [
+        {
+          "file": "03_Triggers.pdf",
+          "page": 12,
+          "quote": "no tuple is affected!"
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "concept": "before-trigger-restrictions",
+      "question": "Which of these can a BEFORE trigger do?",
+      "options": [
+        "Update another table directly in the database",
+        "Set the value of new.t for the row being written",
+        "Read the new state after the change has been committed",
+        "Change old.t to rewrite history"
+      ],
+      "answer_index": 1,
+      "explanation": "Before triggers cannot update the database directly, but at row-level granularity they can affect the transition variables, for example with set new.t = <expr>.",
+      "citations": [
+        {
+          "file": "03_Triggers.pdf",
+          "page": 9,
+          "quote": "set new.t = <expr>"
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "concept": "transition-variables-undefined",
+      "question": "A row-level trigger is defined on an INSERT event. Which transition variable is NOT available?",
+      "options": [
+        "new",
+        "old",
+        "Both old and new",
+        "Neither one, because both are always defined"
+      ],
+      "answer_index": 1,
+      "explanation": "Variables old and old table are undefined in triggers whose event is insert, because there is no earlier version of the row. new is defined.",
+      "citations": [
+        {
+          "file": "03_Triggers.pdf",
+          "page": 13,
+          "quote": "Variables old and old table are undefined in triggers whose"
+        }
+      ]
+    }
+  ]
+}
