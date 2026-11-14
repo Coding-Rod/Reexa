@@ -35,3 +35,8 @@ export function updateProgress(sectionKey: string, patch: (p: Progress[string]) 
 }
 
 export const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+// Full profile incl. name stays here; only the name-less part is ever sent to the server.
+export type LocalProfile = import("./profile").Profile & { name: string };
+export const loadProfile = () => read<LocalProfile | null>("tutor:profile", null);
+export const saveProfile = (p: LocalProfile) => write("tutor:profile", p);

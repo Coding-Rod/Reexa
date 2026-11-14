@@ -49,6 +49,7 @@ export type Lecture = {
   title: string;
   source: string;
   status: "processing" | "ready" | "failed";
+  language?: string;
   sections: SectionRef[];
 };
 
@@ -64,6 +65,7 @@ export type DiagnoseRequest = {
   token?: string;
   chosenIndex: number;
   reasoning: string;
+  language?: string;
 };
 
 export type DiagnoseResponse = {

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { CitationChip, JuryBadge } from "@/components/Notes";
-import { updateProgress } from "@/lib/store";
+import { updateProgress, loadProfile } from "@/lib/store";
 import type { DiagnoseResponse, Passage, PublicQuestion, PublicSection } from "@/lib/types";
 
 const MIN_WORDS = 8;
@@ -88,6 +88,7 @@ function Question({
           token: q.token,
           chosenIndex: chosen,
           reasoning,
+          language: loadProfile()?.language,
         }),
       });
       const data = await res.json();

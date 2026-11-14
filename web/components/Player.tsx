@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Check from "@/components/Check";
 import { AiNotes, JuryBadge, MyNotes } from "@/components/Notes";
+import { isLanguage, LANGUAGES } from "@/lib/profile";
 import { fmtTime, loadProgress, updateProgress, type Progress } from "@/lib/store";
 import type { Manifest, PublicSection } from "@/lib/types";
 
@@ -57,6 +58,8 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
     );
 
   const playlist = manifest?.lectures.filter((l) => l.status === "ready") ?? [];
+  const lectureLang = manifest?.lectures.find((l) => l.id === lectureId)?.language;
+  const lang = isLanguage(lectureLang) ? lectureLang : "en";
 
   return (
     <div className="mx-auto grid w-full max-w-[1600px] gap-4 px-4 py-4 xl:grid-cols-[260px_minmax(0,1fr)_400px]">
@@ -103,7 +106,12 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
           <>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h1 className="text-xl font-semibold">{section.title}</h1>
-              <JuryBadge jury={section.jury} />
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted" title="Lesson language">
+                  {LANGUAGES[lang]}
+                </span>
+                <JuryBadge jury={section.jury} />
+              </div>
             </div>
             <video
               ref={video}
@@ -115,7 +123,7 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
               onEnded={() => updateProgress(key, (p) => ({ ...p, watched: true }))}
             >
               <source src={section.video} type="video/mp4" />
-              <track kind="captions" src={section.captions} srcLang="en" label="English" default />
+              <track kind="captions" src={section.captions} srcLang={lang} label={LANGUAGES[lang]} default />
             </video>
             <h2 className="mb-2 mt-4 text-sm font-semibold uppercase tracking-wide text-muted">Transcript</h2>
             <ol ref={transcriptBox} className="max-h-72 overflow-y-auto rounded-xl border border-border bg-surface p-2">

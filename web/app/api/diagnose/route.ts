@@ -1,5 +1,6 @@
 import { isId, publicQuestion, readSection } from "@/lib/content";
 import { chatJSON, JURY_MODEL, LLM_MODEL, llmEnabled, seal, unseal } from "@/lib/llm";
+import { isLanguage, LANGUAGE_EN_NAMES, type Language } from "@/lib/profile";
 import type { Citation, DiagnoseRequest, DiagnoseResponse, Jury, QuizItem, Section } from "@/lib/types";
 
 const MIN_WORDS = 8;
@@ -42,10 +43,12 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid option" }, { status: 400 });
 
   const correct = chosenIndex === q.answer_index;
+  // Allowlisted only. Student free-text instructions never reach this prompt.
+  const language: Language = isLanguage(body.language) ? body.language : "en";
 
   if (llmEnabled()) {
     try {
-      const out = await generateWithJury(section, q, chosenIndex, reasoning, correct);
+      const out = await generateWithJury(section, q, chosenIndex, reasoning, correct, language);
       if (out) return Response.json(out);
     } catch (e) {
       console.error("diagnose: LLM path failed, using stored content", e);
@@ -80,7 +83,9 @@ async function generateWithJury(
   chosen: number,
   reasoning: string,
   correct: boolean,
+  language: Language,
 ): Promise<DiagnoseResponse | null> {
+  const lang = LANGUAGE_EN_NAMES[language];
   const sources = section.passages.map((p, i) => `[${i + 1}] ${p.file} p.${p.page}\n${p.text}`).join("\n\n");
   const task = {
     question: q.question,
@@ -105,6 +110,7 @@ async function generateWithJury(
           "Every citation must quote text that appears verbatim in the cited passage. " +
           'Return JSON: {"misconception": string|null, "explanation": string, "citations": [{"file","page","quote"}], ' +
           '"recheck": {"question": string, "options": [4 strings], "answer_index": number, "explanation": string, "citations": [{"file","page","quote"}]}}' +
+          `\nWrite misconception, explanation and the re-check question and options in ${lang}. Citation quotes stay verbatim in the passage's language.` +
           (lastReason ? `\nA reviewer rejected your previous attempt: ${lastReason}` : ""),
       },
       { role: "user", content: `COURSE PASSAGES:\n${sources}\n\nTASK:\n${JSON.stringify(task)}` },
@@ -125,6 +131,7 @@ async function generateWithJury(
           "You are an independent reviewer (AI jury) for a study tool. Check the generated item ONLY against the course passages. " +
           "FAIL if: any claim is not supported by the passages; a quote does not appear in its cited passage; the diagnosis does not match the student's reasoning; " +
           "the re-check question's marked answer is wrong or not unique; or the explanation gives away the re-check answer. " +
+          `Student-facing text is expected in ${lang}; quotes stay in the passage language. ` +
           'Return JSON: {"pass": boolean, "reason": string (one sentence)}',
       },
       {

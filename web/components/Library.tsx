@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { fmtTime, loadProgress, type Progress } from "@/lib/store";
+import { LANGUAGES } from "@/lib/profile";
+import { fmtTime, loadProfile, loadProgress, type LocalProfile, type Progress } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
 export default function Library({ allowUpload }: { allowUpload: boolean }) {
@@ -9,6 +10,8 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   const [progress, setProgress] = useState<Progress>({});
   const [upload, setUpload] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
   const [drag, setDrag] = useState(false);
+  const [profile, setProfile] = useState<LocalProfile | null>(null);
+  const canUpload = allowUpload && profile?.armor?.verdict === "pass";
 
   const refresh = useCallback(async () => {
     try {
@@ -22,7 +25,10 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   useEffect(() => {
     // Fetch on mount; progress lives in localStorage, so read it after mount to match the prerendered HTML.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on mount is the intended effect
-    refresh().then(() => setProgress(loadProgress()));
+    refresh().then(() => {
+      setProgress(loadProgress());
+      setProfile(loadProfile());
+    });
   }, [refresh]);
 
   // Poll only while the worker is generating something.
@@ -35,10 +41,13 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
 
   async function send(files: FileList | null) {
     const file = files?.[0];
-    if (!file || !allowUpload) return;
+    if (!file || !canUpload || !profile) return;
     setUpload({ busy: true, msg: `Uploading ${file.name}…` });
     const body = new FormData();
     body.append("file", file);
+    // Name stays in the browser; the server re-checks the rest.
+    const { course, exam_date, level, language, styles, instructions } = profile;
+    body.append("profile", JSON.stringify({ course, exam_date, level, language, styles, instructions }));
     try {
       const res = await fetch("/api/upload", { method: "POST", body });
       const data = await res.json();
@@ -52,7 +61,9 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
       <header className="mb-8">
-        <p className="text-sm text-muted">AI on Campus · Your personal playlist</p>
+        <p className="text-sm text-muted">
+          AI on Campus · {profile?.name ? `Hi ${profile.name}, this is your personal playlist` : "Your personal playlist"}
+        </p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">{manifest?.course.title ?? "Loading…"}</h1>
         <p className="mt-2 max-w-2xl text-muted">
           Upload your lecture slides. Each lecture becomes short narrated lessons with captions, a transcript and
@@ -60,6 +71,29 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
           what you misunderstood.
         </p>
       </header>
+
+      {allowUpload && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4">
+          {profile ? (
+            <p className="text-sm">
+              <span className="font-medium">Step 1 ✓ Profile:</span> {profile.course} · {profile.level} ·{" "}
+              {LANGUAGES[profile.language]}
+              {profile.armor && (
+                <span className="ml-2 rounded-full bg-good/15 px-2 py-0.5 text-xs text-good">
+                  Checked by {profile.armor.engine === "model_armor" ? "Model Armor" : "local guard"}
+                </span>
+              )}
+            </p>
+          ) : (
+            <p className="text-sm">
+              <span className="font-medium">Step 1:</span> tell the tutor about you, your output language and how you learn.
+            </p>
+          )}
+          <Link href="/start" className={profile ? "text-sm text-accent underline" : "rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg"}>
+            {profile ? "Edit profile" : "Set up your profile →"}
+          </Link>
+        </div>
+      )}
 
       <label
         onDragOver={(e) => {
@@ -74,18 +108,22 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
         }}
         className={`mb-10 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
           drag ? "border-accent bg-surface" : "border-border"
-        } ${allowUpload ? "cursor-pointer hover:border-accent" : "opacity-70"}`}
+        } ${canUpload ? "cursor-pointer hover:border-accent" : "opacity-70"}`}
       >
         <input
           type="file"
           accept="application/pdf,.pdf"
           className="sr-only"
-          disabled={!allowUpload || upload.busy}
+          disabled={!canUpload || upload.busy}
           onChange={(e) => send(e.target.files)}
         />
-        <span className="font-medium">{allowUpload ? "Drop a lecture PDF here, or click to choose" : "Upload lecture slides"}</span>
+        <span className="font-medium">{canUpload ? "Step 2: drop a lecture PDF here, or click to choose" : "Upload lecture slides"}</span>
         <span className="text-sm text-muted">
-          {allowUpload ? "Slides, exercises or past exams (PDF, max 50 MB)" : "Upload works in the local version. This demo shows lessons generated earlier."}
+          {!allowUpload
+            ? "Upload works in the local version. This demo shows lessons generated earlier."
+            : canUpload
+              ? "Slides, exercises or past exams (PDF, max 50 MB)"
+              : "Set up your profile first (step 1)."}
         </span>
         {upload.msg && (
           <span role="status" className="mt-2 text-sm">
@@ -112,7 +150,10 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
                     {l.status === "ready" && `${done}/${l.sections.length} watched`}
                   </span>
                 </div>
-                <p className="text-xs text-muted">Source: {l.source}</p>
+                <p className="text-xs text-muted">
+                  Source: {l.source}
+                  {l.language && ` · ${LANGUAGES[l.language as keyof typeof LANGUAGES] ?? l.language}`}
+                </p>
                 {l.sections.length > 0 && (
                   <ol className="mt-3 divide-y divide-border">
                     {l.sections.map((s, i) => (

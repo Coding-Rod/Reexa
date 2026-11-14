@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { checkProfile } from "@/lib/armor";
 import { readManifest, REPO_ROOT, writeManifest } from "@/lib/content";
 
 const MAX_BYTES = 50 * 1024 * 1024;
@@ -15,6 +16,19 @@ export async function POST(req: Request) {
   if (!(file instanceof File)) return Response.json({ error: "No file" }, { status: 400 });
   if (file.size > MAX_BYTES) return Response.json({ error: "File too large (max 50 MB)" }, { status: 413 });
 
+  // Re-check the profile server-side: never trust the client's earlier armor verdict.
+  let rawProfile: unknown = null;
+  try {
+    rawProfile = JSON.parse(String(form?.get("profile") ?? ""));
+  } catch {
+    /* handled below */
+  }
+  if (!rawProfile) return Response.json({ error: "Set up your profile first." }, { status: 400 });
+  const { profile, errors } = await checkProfile(rawProfile);
+  if (!profile) return Response.json({ error: errors[0] ?? "Set up your profile first." }, { status: 400 });
+  if (profile.armor?.verdict !== "pass")
+    return Response.json({ error: `Your instructions were blocked: ${profile.armor?.reason}` }, { status: 422 });
+
   const bytes = Buffer.from(await file.arrayBuffer());
   if (!file.name.toLowerCase().endsWith(".pdf") || bytes.subarray(0, 5).toString() !== "%PDF-")
     return Response.json({ error: "Only PDF files are accepted" }, { status: 400 });
@@ -26,13 +40,16 @@ export async function POST(req: Request) {
   await mkdir(inbox, { recursive: true });
   const dest = path.join(inbox, base);
   await writeFile(dest, bytes);
+  // normalizeProfile builds a fresh object, so a client-sent name never reaches disk or the worker.
+  const profilePath = path.join(inbox, `${base.replace(/\.pdf$/i, "")}.profile.json`);
+  await writeFile(profilePath, JSON.stringify(profile, null, 2));
 
   const m = await readManifest();
-  const entry = { id, title: base.replace(/\.pdf$/i, "").replace(/[_-]+/g, " "), source: base, status: "processing" as const, sections: [] };
+  const entry = { id, title: base.replace(/\.pdf$/i, "").replace(/[_-]+/g, " "), source: base, status: "processing" as const, language: profile.language, sections: [] };
   m.lectures = [...m.lectures.filter((l) => l.id !== id), entry];
   await writeManifest(m);
 
-  const child = spawn("conda", ["run", "--no-capture-output", "-n", "3b1b", "python", "-m", "worker.pipeline", dest], {
+  const child = spawn("conda", ["run", "--no-capture-output", "-n", "3b1b", "python", "-m", "worker.pipeline", dest, "--profile", profilePath], {
     cwd: REPO_ROOT,
     detached: true,
     stdio: "ignore",
