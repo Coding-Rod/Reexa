@@ -65,8 +65,8 @@ export async function guardText(text: string): Promise<Armor> {
 }
 
 // Shared by /api/profile/check and /api/upload: the client's own armor result is never trusted.
-export async function checkProfile(raw: unknown): Promise<{ profile?: Profile; errors: string[] }> {
-  const { profile, errors } = normalizeProfile(raw);
+export async function checkProfile(raw: unknown, opts?: { requireCourse?: boolean }): Promise<{ profile?: Profile; errors: string[] }> {
+  const { profile, errors } = normalizeProfile(raw, opts);
   if (!profile) return { errors };
   const armor = await guardText([profile.course, profile.instructions].filter(Boolean).join("\n"));
   return { profile: { ...profile, armor }, errors: [] };

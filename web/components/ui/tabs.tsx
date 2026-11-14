@@ -13,7 +13,8 @@ const tabsListVariants = cva("inline-flex w-full items-center text-muted", {
   variants: {
     variant: {
       default: "h-9 rounded-lg bg-accent-soft p-1",
-      line: "gap-1 overflow-x-auto border-b border-border",
+      // Underline drawn as an inset shadow so the active border never overflows (no scrollbar); still swipeable on narrow screens.
+      line: "gap-1 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--border)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
     },
   },
   defaultVariants: { variant: "default" },
@@ -37,7 +38,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
       className={cn(
         "inline-flex items-center justify-center gap-1.5 whitespace-nowrap px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-50",
         variant === "line"
-          ? "-mb-px border-b-2 border-transparent py-2.5 hover:text-foreground data-[state=active]:border-accent data-[state=active]:text-foreground"
+          ? "border-b-2 border-transparent py-2.5 hover:text-foreground data-[state=active]:border-accent data-[state=active]:text-foreground"
           : "h-7 flex-1 rounded-md hover:text-foreground data-[state=active]:bg-surface data-[state=active]:text-foreground",
         className,
       )}

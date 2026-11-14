@@ -1,15 +1,18 @@
 "use client";
-import { ArrowRightIcon, BookOpenIcon, PlusIcon } from "lucide-react";
+import { ArrowRightIcon, BookOpenIcon, CheckIcon, PlayIcon, PlusIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LANGUAGES } from "@/lib/profile";
-import { loadProfile, loadProgress, type Progress } from "@/lib/store";
+import { useUser } from "@/components/AuthButton";
+import { listCourses, loadProfile, loadProgress, type Progress } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
 export default function Courses() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [progress, setProgress] = useState<Progress>({});
-  const [name, setName] = useState("");
+  const name = useUser()?.displayName?.split(" ")[0] ?? "";
+  const [hasProfile, setHasProfile] = useState(false);
+  const [hasCourse, setHasCourse] = useState(false);
 
   useEffect(() => {
     fetch("/api/manifest", { cache: "no-store" })
@@ -18,7 +21,8 @@ export default function Courses() {
       .catch(() => setManifest({ courses: [], lectures: [] }))
       .finally(() => {
         setProgress(loadProgress());
-        setName(loadProfile()?.name ?? "");
+        setHasProfile(loadProfile()?.armor?.verdict === "pass");
+        setHasCourse(listCourses().length > 0);
       });
   }, []);
 
@@ -32,6 +36,31 @@ export default function Courses() {
           slide page and is reviewed by a second AI before you see it.
         </p>
       </header>
+
+      {manifest && (
+        <ol className="mb-8 grid gap-3 md:grid-cols-3" aria-label="How it works">
+          {[
+            { n: 1, icon: UserRoundIcon, title: "Your profile", text: "Language, learning style and tutor instructions.", href: "/profile", cta: hasProfile ? "Edit profile" : "Set up profile", done: hasProfile },
+            { n: 2, icon: PlusIcon, title: "Add a course", text: "Name it, set your exam date and add the slides.", href: "/courses/new", cta: "Add a course", done: hasCourse || manifest.courses.length > 0 },
+            { n: 3, icon: PlayIcon, title: "Learn and check", text: "Watch, take notes, then prove it in the check.", href: manifest.courses[0] ? `/course/${manifest.courses[0].id}` : "/courses/new", cta: "Open a course", done: Object.values(progress).some((p) => p.watched) },
+          ].map(({ n, icon: Icon, title, text, href, cta, done }) => (
+            <li key={n} className={`flex flex-col gap-2 rounded-xl border bg-surface p-4 ${done ? "border-border" : "border-accent/40"}`}>
+              <div className="flex items-center gap-2">
+                <span aria-hidden className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? "bg-good/15 text-good" : "bg-accent-soft text-accent"}`}>
+                  {done ? <CheckIcon size={14} /> : n}
+                </span>
+                <h2 className="font-semibold">{title}</h2>
+                <Icon size={16} aria-hidden className="ml-auto text-muted" />
+                <span className="sr-only">{done ? "done" : "to do"}</span>
+              </div>
+              <p className="text-sm text-muted">{text}</p>
+              <Link href={href} className="mt-auto pt-1 text-sm text-accent underline-offset-2 hover:underline">
+                {cta}
+              </Link>
+            </li>
+          ))}
+        </ol>
+      )}
 
       {!manifest && <p className="text-muted">Loading courses…</p>}
 
@@ -88,12 +117,12 @@ export default function Courses() {
         {manifest && (
           <li>
             <Link
-              href="/start"
+              href="/courses/new"
               className="flex h-full min-h-48 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border p-5 text-center text-muted hover:border-accent hover:text-accent"
             >
               <PlusIcon size={24} aria-hidden />
               <span className="font-medium">Add a course</span>
-              <span className="text-sm">Set your profile, then upload the slides.</span>
+              <span className="text-sm">Name it, set the exam date and add the slides.</span>
             </Link>
           </li>
         )}

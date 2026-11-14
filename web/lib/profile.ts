@@ -57,12 +57,14 @@ const clean = (v: unknown) => (typeof v === "string" ? v.replace(/[\u0000-\u0008
 
 // Trust boundary: strict allowlists and length caps. Too-long text is an error, not silently cut,
 // so the guard always sees exactly what the student wrote.
-export function normalizeProfile(raw: unknown): { profile?: Profile; errors: string[] } {
+// requireCourse=false: user preferences only (the /profile page); course and level are per-course settings
+// that only an upload needs.
+export function normalizeProfile(raw: unknown, { requireCourse = true } = {}): { profile?: Profile; errors: string[] } {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const errors: string[] = [];
 
   const course = clean(r.course);
-  if (!course) errors.push("Course is required.");
+  if (!course && requireCourse) errors.push("Course is required.");
   if (course.length > LIMITS.course) errors.push(`Course must be at most ${LIMITS.course} characters.`);
 
   const instructions = clean(r.instructions);
@@ -75,7 +77,7 @@ export function normalizeProfile(raw: unknown): { profile?: Profile; errors: str
     else errors.push("Exam date must be YYYY-MM-DD.");
   }
 
-  const level = LEVELS.find((l) => l === r.level);
+  const level = LEVELS.find((l) => l === r.level) ?? (requireCourse ? undefined : "beginner");
   if (!level) errors.push("Choose a level.");
 
   const language = isLanguage(r.language) ? r.language : undefined;

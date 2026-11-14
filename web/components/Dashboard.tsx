@@ -2,7 +2,7 @@
 import { useUser } from "@/components/AuthButton";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { loadProfile, loadProgress, type LocalProfile, type Progress } from "@/lib/store";
+import { listCourses, loadProgress, type CourseSettings, type Progress } from "@/lib/store";
 import type { Manifest, PublicSection } from "@/lib/types";
 
 type Status = "gap" | "closed" | "new";
@@ -28,7 +28,7 @@ export default function Dashboard() {
   const firstName = useUser()?.displayName?.split(" ")[0];
   const [rows, setRows] = useState<Row[] | null>(null);
   const [progress, setProgress] = useState<Progress>({});
-  const [profile, setProfile] = useState<LocalProfile | null>(null);
+  const [courseSettings, setCourseSettings] = useState<CourseSettings[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -54,7 +54,7 @@ export default function Dashboard() {
     })();
     const sync = () => {
       setProgress(loadProgress());
-      setProfile(loadProfile());
+      setCourseSettings(listCourses());
     };
     sync();
     window.addEventListener("tutor-store", sync);
@@ -70,7 +70,12 @@ export default function Dashboard() {
   const closed = all.filter((x) => x.s === "closed").length;
   const gap = all.find((x) => x.s === "gap");
   const unwatched = rows.find((r) => !progress[`${r.lectureId}/${r.sectionId}`]?.watched);
-  const days = daysLeft(profile?.exam_date);
+  // Exam dates are per course: show the next upcoming one.
+  const exam = courseSettings
+    .map((c) => ({ title: c.title, days: daysLeft(c.exam_date) }))
+    .filter((c): c is { title: string; days: number } => c.days !== null && c.days >= 0)
+    .sort((a, b) => a.days - b.days)[0];
+  const days = exam?.days ?? null;
   const nothing = watched === 0 && seen.length === 0;
   const courses = [...new Set(rows.map((r) => r.courseId))];
 
@@ -82,7 +87,7 @@ export default function Dashboard() {
         </h1>
         {days !== null && (
           <p className="mt-1 text-muted">
-            {days > 0 ? `${days} day${days === 1 ? "" : "s"} until your exam` : days === 0 ? "Your exam is today. Good luck!" : "Exam date has passed"}
+            {days > 0 ? `${days} day${days === 1 ? "" : "s"} until your ${exam!.title} exam` : `Your ${exam!.title} exam is today. Good luck!`}
           </p>
         )}
       </header>

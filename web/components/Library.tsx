@@ -1,10 +1,10 @@
 "use client";
-import { CheckIcon, FileUpIcon, PlayIcon, UserRoundIcon } from "lucide-react";
+import { CheckIcon, FileUpIcon, PlayIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { courseSlug, LANGUAGES } from "@/lib/profile";
-import { fmtTime, loadLastLesson, loadProfile, loadProgress, type LocalProfile, type Progress } from "@/lib/store";
+import { fmtTime, loadCourse, loadLastLesson, loadProfile, loadProgress, uploadLecture, type CourseSettings, type LocalProfile, type Progress } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
 export default function Library({ allowUpload }: { allowUpload: boolean }) {
@@ -15,6 +15,7 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   const [drag, setDrag] = useState(false);
   const [profile, setProfile] = useState<LocalProfile | null>(null);
   const [last, setLast] = useState<string | null>(null);
+  const [settings, setSettings] = useState<CourseSettings | null>(null);
   const canUpload = allowUpload && profile?.armor?.verdict === "pass";
 
   const refresh = useCallback(async () => {
@@ -33,14 +34,15 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
       setProgress(loadProgress());
       setProfile(loadProfile());
       setLast(loadLastLesson());
+      setSettings(loadCourse(courseId));
     });
-  }, [refresh]);
+  }, [refresh, courseId]);
 
   // Poll only while the worker is generating something.
-  // /course/<id> or /course/<title-slug> (the profile form links by title before the course exists).
+  // /course/<id> or /course/<title-slug> (/courses/new links by title before the course has lectures).
   const course = manifest?.courses.find((c) => c.id === courseId || courseSlug(c.title) === courseId);
   const lectures = manifest?.lectures.filter((l) => l.course_id === (course?.id ?? courseId)) ?? [];
-  const title = course?.title ?? (profile && courseSlug(profile.course) === courseId ? profile.course : null);
+  const title = course?.title ?? settings?.title ?? null;
   const processing = lectures.some((l) => l.status === "processing");
   useEffect(() => {
     if (!processing) return;
@@ -52,64 +54,17 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
     const file = files?.[0];
     if (!file || !canUpload || !profile) return;
     setUpload({ busy: true, msg: `Uploading ${file.name}…` });
-    const body = new FormData();
-    body.append("file", file);
-    // Name stays in the browser; the server re-checks the rest.
-    // Uploads from a course page land in that course.
-    const { exam_date, level, language, styles, instructions } = profile;
-    body.append("profile", JSON.stringify({ course: title ?? profile.course, exam_date, level, language, styles, instructions }));
-    try {
-      const res = await fetch("/api/upload", { method: "POST", body });
-      const data = await res.json();
-      setUpload({ busy: false, msg: res.ok ? `${file.name}: generating lessons. This page updates by itself.` : data.error });
-      refresh();
-    } catch {
-      setUpload({ busy: false, msg: "Upload failed. Is the local server running?" });
-    }
+    // Seeded courses (e.g. db2) have no local settings yet: sensible defaults, profile language.
+    const course = settings ?? { title: title ?? courseId, exam_date: null, level: "beginner" as const };
+    setUpload({ busy: false, msg: (await uploadLecture(file, course, profile)).msg });
+    refresh();
   }
 
   const ready = lectures.filter((l) => l.status === "ready" && l.sections.length);
-  const total = ready.reduce((n, l) => n + l.sections.length, 0);
   const watched = ready.reduce((n, l) => n + l.sections.filter((s) => progress[`${l.id}/${s.id}`]?.watched).length, 0);
   const nextOf = (l: Manifest["lectures"][number]) => l.sections.find((s) => !progress[`${l.id}/${s.id}`]?.watched) ?? l.sections[0];
   const resume = last && ready.some((l) => l.sections.some((s) => `${l.id}/${s.id}` === last)) ? last : ready[0] && `${ready[0].id}/${nextOf(ready[0]).id}`;
 
-  const steps = [
-    {
-      n: 1,
-      icon: UserRoundIcon,
-      title: "Your profile",
-      done: !!profile,
-      text: profile
-        ? `${profile.course} · ${profile.level} · ${LANGUAGES[profile.language]}`
-        : "Level, output language and how you like to learn.",
-      action: (
-        <Link href="/start" className={profile ? "text-sm text-accent underline-offset-2 hover:underline" : btnPrimary}>
-          {profile ? "Edit profile" : "Set up profile"}
-        </Link>
-      ),
-    },
-    {
-      n: 2,
-      icon: FileUpIcon,
-      title: "Upload slides",
-      done: ready.length > 0,
-      text: allowUpload ? "Drop a lecture PDF below. Lessons appear as they render." : "Upload runs in the local version. This site shows lessons generated earlier.",
-      action: null,
-    },
-    {
-      n: 3,
-      icon: PlayIcon,
-      title: "Learn and check",
-      done: total > 0 && watched === total,
-      text: total ? `${watched} of ${total} lessons watched` : "Watch, take notes, then prove it in the check.",
-      action: resume ? (
-        <Link href={`/learn/${resume}`} className={btnPrimary}>
-          {watched ? "Continue" : "Start learning"}
-        </Link>
-      ) : null,
-    },
-  ];
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-10">
@@ -128,25 +83,13 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
         </p>
       </header>
 
-      <ol className="mb-8 grid gap-3 md:grid-cols-3" aria-label="How it works">
-        {steps.map(({ n, icon: Icon, title, done, text, action }) => (
-          <li key={n} className={`flex flex-col gap-2 rounded-xl border bg-surface p-4 ${done ? "border-border" : "border-accent/40"}`}>
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden
-                className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? "bg-good/15 text-good" : "bg-accent-soft text-accent"}`}
-              >
-                {done ? <CheckIcon size={14} /> : n}
-              </span>
-              <h2 className="font-semibold">{title}</h2>
-              <Icon size={16} aria-hidden className="ml-auto text-muted" />
-              <span className="sr-only">{done ? "done" : "to do"}</span>
-            </div>
-            <p className="text-sm text-muted">{text}</p>
-            {action && <div className="mt-auto pt-1">{action}</div>}
-          </li>
-        ))}
-      </ol>
+
+      {resume && (
+        <Link href={`/learn/${resume}`} className={`${btnPrimary} mb-6`}>
+          <PlayIcon size={14} aria-hidden />
+          {watched ? "Continue" : "Start learning"}
+        </Link>
+      )}
 
       {allowUpload && (
         <label
@@ -172,7 +115,12 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
             onChange={(e) => send(e.target.files)}
           />
           <FileUpIcon size={22} aria-hidden className="text-muted" />
-          <span className="font-medium">{canUpload ? "Drop a lecture PDF here, or click to choose" : "Set up your profile first"}</span>
+          <span className="font-medium">{canUpload ? "Drop a lecture PDF here, or click to choose" : "Set your preferences first"}</span>
+          {!canUpload && (
+            <Link href="/profile" className="text-sm text-accent underline">
+              Open profile
+            </Link>
+          )}
           <span className="text-sm text-muted">Slides, exercises or past exams · PDF · max 50 MB</span>
           {upload.msg && (
             <span role="status" className="mt-2 text-sm">
@@ -189,7 +137,10 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
         {!manifest && <p className="text-muted">Loading lectures…</p>}
         {manifest && lectures.length === 0 && (
           <p className="rounded-xl border border-border bg-surface p-6 text-muted">
-            No lectures yet. {allowUpload ? "Upload a PDF above to generate your first lessons." : "Run the local version to upload slides."}
+            No lectures yet. {allowUpload ? "Upload a PDF above to generate your first lessons." : "Run the local version to upload slides."}{" "}
+            <Link href="/courses/new" className="text-accent underline">
+              Add a course
+            </Link>
           </p>
         )}
         <ol className="grid gap-4 md:grid-cols-2">

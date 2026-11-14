@@ -23,6 +23,7 @@ assert.ok(normalizeProfile({ ...base, instructions: "x".repeat(LIMITS.instructio
 assert.ok(normalizeProfile({ ...base, instructions: "x".repeat(LIMITS.instructions) }).profile);
 assert.ok(normalizeProfile({ ...base, language: "xx" }).errors.length);
 assert.ok(normalizeProfile({ ...base, course: "" }).errors.length);
+assert.equal(normalizeProfile({ ...base, course: "", level: undefined }, { requireCourse: false }).profile?.level, "beginner");
 assert.equal((normalizeProfile({ ...base, name: "Rodri" }).profile as Record<string, unknown>).name, undefined);
 
 console.log("armor.check: all assertions passed");

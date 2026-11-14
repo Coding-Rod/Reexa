@@ -76,7 +76,7 @@ export default function AppHeader() {
     { href: "/", label: "Courses", icon: LibraryBigIcon, active: pathname === "/" || pathname.startsWith("/course/") },
     ...(lessons.length ? [{ href: continueHref, label: "Continue", icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
     { href: "/dashboard", label: "Progress", icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
-    { href: "/start", label: "Profile", icon: UserRoundIcon, active: pathname === "/start" },
+    { href: "/profile", label: "Profile", icon: UserRoundIcon, active: pathname === "/profile" },
   ];
   const ThemeIcon = THEME_ICON[theme];
 
