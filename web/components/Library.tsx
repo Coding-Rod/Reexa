@@ -72,7 +72,6 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
         </p>
       </header>
 
-      {allowUpload && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4">
           {profile ? (
             <p className="text-sm">
@@ -93,7 +92,6 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
             {profile ? "Edit profile" : "Set up your profile →"}
           </Link>
         </div>
-      )}
 
       <label
         onDragOver={(e) => {
