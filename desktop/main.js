@@ -5,6 +5,10 @@
 const { app, BrowserWindow, Menu, shell, dialog } = require("electron");
 const { spawn } = require("node:child_process");
 const path = require("node:path");
+const fs = require("node:fs");
+
+// Local mode runs the web app from the repo checkout; a packaged build has no ../web, so it stays online.
+const WEB_DIR = path.join(__dirname, "..", "web");
 
 const ONLINE_URL = process.env.REEXA_URL || "https://web-zeta-six-87.vercel.app";
 const OLLAMA = "http://localhost:11434";
@@ -34,6 +38,10 @@ async function waitFor(url, ms = 90_000) {
 }
 
 async function startLocal() {
+  if (app.isPackaged || !fs.existsSync(path.join(WEB_DIR, "package.json"))) {
+    dialog.showMessageBox({ message: "Local mode is available when running Reexa from the source repo. Opening online mode." });
+    return ONLINE_URL;
+  }
   const models = await ollamaModels();
   if (!models.length) {
     dialog.showMessageBox({ message: "Local mode needs Ollama running (ollama serve) with a model pulled. Opening online mode." });
@@ -42,7 +50,7 @@ async function startLocal() {
   const model = models.includes(LOCAL_MODEL) ? LOCAL_MODEL : models[0];
   if (!server) {
     server = spawn("pnpm", ["dev", "-p", String(LOCAL_PORT)], {
-      cwd: path.join(__dirname, "..", "web"),
+      cwd: WEB_DIR,
       env: {
         ...process.env,
         LLM_BASE_URL: `${OLLAMA}/v1`,
@@ -56,6 +64,7 @@ async function startLocal() {
       },
       stdio: "ignore",
     });
+    server.on("error", () => (server = null));
   }
   const url = `http://localhost:${LOCAL_PORT}`;
   return (await waitFor(url)) ? url : ONLINE_URL;
