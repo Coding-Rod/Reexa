@@ -86,6 +86,9 @@ export default function AppHeader() {
   ];
   const ThemeIcon = THEME_ICON[theme];
 
+  // Sign-in is a standalone screen: no navigation until the user is in.
+  if (pathname === "/signin") return null;
+
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-surface">
