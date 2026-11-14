@@ -61,6 +61,9 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
       <header className="mb-8">
+        <Link href="/dashboard" className="float-right rounded-lg border border-border px-3 py-1.5 text-sm hover:border-accent hover:text-accent">
+          My progress
+        </Link>
         <p className="text-sm text-muted">
           AI on Campus · {profile?.name ? `Hi ${profile.name}, this is your personal playlist` : "Your personal playlist"}
         </p>

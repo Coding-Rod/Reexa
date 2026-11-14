@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Check from "@/components/Check";
 import { AiNotes, JuryBadge, MyNotes } from "@/components/Notes";
@@ -15,7 +16,8 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
   const [section, setSection] = useState<PublicSection | null>(null);
   const [error, setError] = useState("");
   const [time, setTime] = useState(0);
-  const [tab, setTab] = useState<(typeof TABS)[number]>("AI Notes");
+  const requested = useSearchParams().get("tab");
+  const [tab, setTab] = useState<(typeof TABS)[number]>(TABS.find((t) => t === requested) ?? "AI Notes");
   const [progress, setProgress] = useState<Progress>({});
   const video = useRef<HTMLVideoElement>(null);
   const transcriptBox = useRef<HTMLOListElement>(null);
@@ -64,9 +66,14 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
   return (
     <div className="mx-auto grid w-full max-w-[1600px] gap-4 px-4 py-4 xl:grid-cols-[260px_minmax(0,1fr)_400px]">
       <nav aria-label="Playlist" className="order-4 xl:order-1">
-        <Link href="/" className="mb-3 inline-block text-sm text-muted hover:text-accent">
-          ← Library
-        </Link>
+        <div className="mb-3 flex gap-4 text-sm">
+          <Link href="/" className="text-muted hover:text-accent">
+            ← Library
+          </Link>
+          <Link href="/dashboard" className="text-muted hover:text-accent">
+            My progress
+          </Link>
+        </div>
         <div className="space-y-4 xl:max-h-[calc(100vh-5rem)] xl:overflow-y-auto">
           {playlist.map((l) => (
             <div key={l.id}>
