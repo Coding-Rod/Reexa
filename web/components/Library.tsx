@@ -3,11 +3,13 @@ import { CheckIcon, FileUpIcon, PlayIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { courseSlug, LANGUAGES } from "@/lib/profile";
+import { useT } from "@/components/Lang";
+import { courseSlug, isLanguage } from "@/lib/profile";
 import { fmtTime, loadCourse, loadLastLesson, loadProfile, loadProgress, uploadLecture, type CourseSettings, type LocalProfile, type Progress } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
 export default function Library({ allowUpload }: { allowUpload: boolean }) {
+  const t = useT();
   const { courseId } = useParams<{ courseId: string }>();
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [progress, setProgress] = useState<Progress>({});
@@ -53,10 +55,10 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   async function send(files: FileList | null) {
     const file = files?.[0];
     if (!file || !canUpload || !profile) return;
-    setUpload({ busy: true, msg: `Uploading ${file.name}…` });
+    setUpload({ busy: true, msg: t.library.uploading(file.name) });
     // Seeded courses (e.g. db2) have no local settings yet: sensible defaults, profile language.
     const course = settings ?? { title: title ?? courseId, exam_date: null, level: "beginner" as const };
-    setUpload({ busy: false, msg: (await uploadLecture(file, course, profile)).msg });
+    setUpload({ busy: false, msg: (await uploadLecture(file, course, profile, t.upload)).msg });
     refresh();
   }
 
@@ -69,25 +71,22 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-10">
       <header className="mb-6">
-        <nav aria-label="Breadcrumb" className="text-sm text-muted">
+        <nav aria-label={t.common.breadcrumb} className="text-sm text-muted">
           <Link href="/" className="hover:text-accent">
-            Courses
+            {t.common.courses}
           </Link>{" "}
           › <span aria-current="page">{title ?? courseId}</span>
         </nav>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{manifest ? (title ?? "Course not found") : "Loading…"}</h1>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{manifest ? (title ?? t.library.notFound) : t.common.loading}</h1>
         {course?.term && <p className="mt-1 text-sm text-muted">{course.term}</p>}
-        <p className="mt-2 max-w-2xl text-muted">
-          Each lecture becomes short narrated lessons with captions, a transcript and notes. Every claim cites a slide
-          page and is checked by a second AI before you see it.
-        </p>
+        <p className="mt-2 max-w-2xl text-muted">{t.library.intro}</p>
       </header>
 
 
       {resume && (
         <Link href={`/learn/${resume}`} className={`${btnPrimary} mb-6`}>
           <PlayIcon size={14} aria-hidden />
-          {watched ? "Continue" : "Start learning"}
+          {watched ? t.library.continue : t.library.startLearning}
         </Link>
       )}
 
@@ -115,13 +114,13 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
             onChange={(e) => send(e.target.files)}
           />
           <FileUpIcon size={22} aria-hidden className="text-muted" />
-          <span className="font-medium">{canUpload ? "Drop a lecture PDF here, or click to choose" : "Set your preferences first"}</span>
+          <span className="font-medium">{canUpload ? t.library.dropPdf : t.library.setPrefsFirst}</span>
           {!canUpload && (
             <Link href="/profile" className="text-sm text-accent underline">
-              Open profile
+              {t.common.openProfile}
             </Link>
           )}
-          <span className="text-sm text-muted">Slides, exercises or past exams · PDF · max 50 MB</span>
+          <span className="text-sm text-muted">{t.library.pdfHint}</span>
           {upload.msg && (
             <span role="status" className="mt-2 text-sm">
               {upload.msg}
@@ -132,14 +131,14 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
 
       <section aria-labelledby="lectures">
         <h2 id="lectures" className="mb-3 text-lg font-semibold">
-          Lectures
+          {t.library.lectures}
         </h2>
-        {!manifest && <p className="text-muted">Loading lectures…</p>}
+        {!manifest && <p className="text-muted">{t.library.loadingLectures}</p>}
         {manifest && lectures.length === 0 && (
           <p className="rounded-xl border border-border bg-surface p-6 text-muted">
-            No lectures yet. {allowUpload ? "Upload a PDF above to generate your first lessons." : "Run the local version to upload slides."}{" "}
+            {t.library.noLectures} {allowUpload ? t.library.uploadAbove : t.library.runLocal}{" "}
             <Link href="/courses/new" className="text-accent underline">
-              Add a course
+              {t.library.addCourse}
             </Link>
           </p>
         )}
@@ -156,17 +155,17 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
                     <h3 className="font-semibold leading-snug">{l.title}</h3>
                     <p className="mt-0.5 truncate text-xs text-muted">
                       {l.source}
-                      {l.language && ` · ${LANGUAGES[l.language as keyof typeof LANGUAGES] ?? l.language}`}
-                      {l.sections.length > 0 && ` · ${l.sections.length} lesson${l.sections.length === 1 ? "" : "s"} · ${minutes} min`}
+                      {l.language && ` · ${isLanguage(l.language) ? t.langNames[l.language] : l.language}`}
+                      {l.sections.length > 0 && ` · ${t.library.lessonsMin(l.sections.length, minutes)}`}
                     </p>
                   </div>
-                  {l.status === "processing" && <span className="shrink-0 text-xs font-medium text-warn">Generating…</span>}
-                  {l.status === "failed" && <span className="shrink-0 text-xs font-medium text-bad">Failed</span>}
+                  {l.status === "processing" && <span className="shrink-0 text-xs font-medium text-warn">{t.library.generating}</span>}
+                  {l.status === "failed" && <span className="shrink-0 text-xs font-medium text-bad">{t.library.failed}</span>}
                 </div>
 
                 {l.sections.length > 0 && (
                   <>
-                    <div className="mt-3 flex items-center gap-2" aria-label={`${done} of ${l.sections.length} watched`}>
+                    <div className="mt-3 flex items-center gap-2" aria-label={t.library.watchedOf(done, l.sections.length)}>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-accent-soft">
                         <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
                       </div>
@@ -193,7 +192,7 @@ export default function Library({ allowUpload }: { allowUpload: boolean }) {
                     {next && l.status === "ready" && (
                       <Link href={`/learn/${l.id}/${next.id}`} className={`${btnPrimary} mt-4 self-start`}>
                         <PlayIcon size={14} aria-hidden />
-                        {done === 0 ? "Start" : done === l.sections.length ? "Watch again" : "Continue"}
+                        {done === 0 ? t.library.start : done === l.sections.length ? t.library.watchAgain : t.library.continue}
                       </Link>
                     )}
                   </>

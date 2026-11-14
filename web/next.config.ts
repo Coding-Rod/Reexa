@@ -7,8 +7,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [{ source: "/start", destination: "/profile", permanent: false }];
   },
-  cacheComponents: true,
-  partialPrefetching: true,
+  // No cacheComponents: every page reads the UI language cookie in the root layout (per-request render).
   // API routes read section.json / manifest.json from disk; ship them with the functions on Vercel.
   outputFileTracingIncludes: {
     "/api/**": ["./public/content/**/*.json"],

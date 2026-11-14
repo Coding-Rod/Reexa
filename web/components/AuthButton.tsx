@@ -2,6 +2,7 @@
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth";
 import { LogIn, LogOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/components/Lang";
 import { auth, authEnabled, google } from "@/lib/firebase";
 
 export function useUser() {
@@ -11,6 +12,7 @@ export function useUser() {
 }
 
 export default function AuthButton() {
+  const t = useT();
   const user = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
@@ -29,7 +31,7 @@ export default function AuthButton() {
     try {
       await signInWithPopup(auth!, google);
     } catch (e) {
-      if ((e as { code?: string }).code !== "auth/popup-closed-by-user") setError("Sign-in failed. Try again.");
+      if ((e as { code?: string }).code !== "auth/popup-closed-by-user") setError(t.auth.failed);
     }
   }
 
@@ -44,7 +46,7 @@ export default function AuthButton() {
         {open && (
           <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-border bg-surface p-1 shadow-lg">
             <button type="button" onClick={() => signOut(auth!)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-background">
-              <LogOut className="h-4 w-4" aria-hidden /> Sign out
+              <LogOut className="h-4 w-4" aria-hidden /> {t.auth.signOut}
             </button>
           </div>
         )}
@@ -54,7 +56,7 @@ export default function AuthButton() {
   return (
     <div className="relative">
       <button type="button" onClick={login} className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg">
-        <LogIn className="h-4 w-4" aria-hidden /> Sign in with Google
+        <LogIn className="h-4 w-4" aria-hidden /> {t.auth.signIn}
       </button>
       {error && (
         <p role="alert" className="absolute right-0 mt-1 whitespace-nowrap text-xs text-bad">

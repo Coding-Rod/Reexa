@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Check from "@/components/Check";
 import { AiNotes, JuryBadge, MyNotes } from "@/components/Notes";
+import { useT } from "@/components/Lang";
 import { isLanguage, LANGUAGES } from "@/lib/profile";
 import { fmtTime, loadProgress, saveLastLesson, updateProgress, type Progress } from "@/lib/store";
 import type { Manifest, PublicSection } from "@/lib/types";
@@ -13,13 +14,14 @@ const TABS = ["AI Notes", "My Notes", "Check"] as const;
 const TAB_ICON = { "AI Notes": FileTextIcon, "My Notes": NotebookPenIcon, Check: ClipboardCheckIcon };
 
 export default function Player({ lectureId, sectionId }: { lectureId: string; sectionId: string }) {
+  const t = useT();
   const key = `${lectureId}/${sectionId}`;
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [section, setSection] = useState<PublicSection | null>(null);
   const [error, setError] = useState("");
   const [time, setTime] = useState(0);
   const requested = useSearchParams().get("tab");
-  const [tab, setTab] = useState<(typeof TABS)[number]>(TABS.find((t) => t === requested) ?? "AI Notes");
+  const [tab, setTab] = useState<(typeof TABS)[number]>(TABS.find((x) => x === requested) ?? "AI Notes");
   const [progress, setProgress] = useState<Progress>({});
   const video = useRef<HTMLVideoElement>(null);
   const transcriptBox = useRef<HTMLOListElement>(null);
@@ -27,14 +29,14 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
   useEffect(() => {
     fetch("/api/manifest").then((r) => r.json()).then(setManifest).catch(() => {});
     fetch(`/api/section/${lectureId}/${sectionId}`)
-      .then(async (r) => (r.ok ? setSection(await r.json()) : setError("This lesson was not found.")))
-      .catch(() => setError("Could not load this lesson."));
+      .then(async (r) => (r.ok ? setSection(await r.json()) : setError(t.player.notFound)))
+      .catch(() => setError(t.player.loadFailed));
     saveLastLesson(key);
     const sync = () => setProgress(loadProgress());
     sync();
     window.addEventListener("tutor-store", sync);
     return () => window.removeEventListener("tutor-store", sync);
-  }, [lectureId, sectionId, key]);
+  }, [lectureId, sectionId, key, t]);
 
   const seek = (t: number) => {
     const v = video.current;
@@ -57,7 +59,7 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
       <main className="mx-auto max-w-xl px-4 py-16">
         <p>{error}</p>
         <Link href="/" className="text-accent underline">
-          Back to your courses
+          {t.player.backToCourses}
         </Link>
       </main>
     );
@@ -75,7 +77,7 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
 
   return (
     <div className="mx-auto grid w-full max-w-[1600px] gap-5 px-4 py-5 xl:grid-cols-[280px_minmax(0,1fr)_400px]">
-      <nav aria-label="Playlist" className="order-4 xl:order-1">
+      <nav aria-label={t.player.playlist} className="order-4 xl:order-1">
         <div className="space-y-5 rounded-xl border border-border bg-surface p-3 xl:sticky xl:top-[calc(var(--header-h)+1rem)] xl:max-h-[calc(100vh-var(--header-h)-2rem)] xl:overflow-y-auto">
           {playlist.map((l) => {
             const done = l.sections.filter((x) => progress[`${l.id}/${x.id}`]?.watched).length;
@@ -119,14 +121,14 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
 
       <main className="order-1 min-w-0 xl:order-2">
         {!section ? (
-          <p className="py-16 text-center text-muted">Loading lesson…</p>
+          <p className="py-16 text-center text-muted">{t.player.loadingLesson}</p>
         ) : (
           <>
-            <nav aria-label="Breadcrumb" className="mb-1 text-sm text-muted">
+            <nav aria-label={t.common.breadcrumb} className="mb-1 text-sm text-muted">
               <ol className="flex flex-wrap items-center gap-1">
                 <li>
                   <Link href="/" className="hover:text-accent">
-                    Courses
+                    {t.common.courses}
                   </Link>
                 </li>
                 <li aria-hidden>›</li>
@@ -136,7 +138,7 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
                       {course.title}
                     </Link>
                   ) : (
-                    "Course"
+                    t.player.course
                   )}
                 </li>
                 <li aria-hidden>›</li>
@@ -150,8 +152,8 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h1 className="text-2xl font-semibold tracking-tight">{section.title}</h1>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted" title="Lesson language">
-                  {LANGUAGES[lang]}
+                <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted" title={t.player.lessonLanguage}>
+                  {t.langNames[lang]}
                 </span>
                 <JuryBadge jury={section.jury} />
               </div>
@@ -172,8 +174,8 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
               {prev ? (
                 <Link href={prev.href} className={stepBtn} title={prev.title}>
                   <ChevronLeftIcon size={16} aria-hidden />
-                  <span className="hidden sm:inline">Previous</span>
-                  <span className="sr-only sm:hidden">Previous lesson</span>
+                  <span className="hidden sm:inline">{t.player.previous}</span>
+                  <span className="sr-only sm:hidden">{t.player.previousLesson}</span>
                 </Link>
               ) : (
                 <span />
@@ -181,13 +183,13 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
               {next && (
                 <Link href={next.href} className={`${stepBtn} min-w-0`} title={next.title}>
                   <span className="truncate">
-                    <span className="text-muted">Next:</span> {next.title}
+                    <span className="text-muted">{t.player.next}</span> {next.title}
                   </span>
                   <ChevronRightIcon size={16} aria-hidden className="shrink-0" />
                 </Link>
               )}
             </div>
-            <h2 className="mb-2 mt-5 text-sm font-semibold">Transcript</h2>
+            <h2 className="mb-2 mt-5 text-sm font-semibold">{t.common.transcript}</h2>
             <ol ref={transcriptBox} className="max-h-80 space-y-0.5 overflow-y-auto rounded-xl border border-border bg-surface p-2 leading-relaxed">
               {section.transcript.map((c, i) => (
                 <li key={i}>
@@ -208,27 +210,27 @@ export default function Player({ lectureId, sectionId }: { lectureId: string; se
         )}
       </main>
 
-      <aside className="order-2 min-w-0 xl:sticky xl:top-[calc(var(--header-h)+1rem)] xl:order-3 xl:self-start" aria-label="Notes and check">
+      <aside className="order-2 min-w-0 xl:sticky xl:top-[calc(var(--header-h)+1rem)] xl:order-3 xl:self-start" aria-label={t.player.notesAndCheck}>
         {section && (
           <>
-            <div role="tablist" aria-label="Lesson tools" className="flex border-b border-border">
-              {TABS.map((t) => {
-                const Icon = TAB_ICON[t];
+            <div role="tablist" aria-label={t.player.lessonTools} className="flex border-b border-border">
+              {TABS.map((tabId) => {
+                const Icon = TAB_ICON[tabId];
                 return (
                   <button
-                    key={t}
-                    id={`tab-${t}`}
+                    key={tabId}
+                    id={`tab-${tabId}`}
                     role="tab"
-                    aria-selected={tab === t}
+                    aria-selected={tab === tabId}
                     aria-controls="lesson-panel"
-                    onClick={() => setTab(t)}
+                    onClick={() => setTab(tabId)}
                     className={`relative flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-sm ${
-                      tab === t ? "font-medium text-accent" : "text-muted hover:text-foreground"
+                      tab === tabId ? "font-medium text-accent" : "text-muted hover:text-foreground"
                     }`}
                   >
                     <Icon size={16} aria-hidden />
-                    {t}
-                    {tab === t && <span aria-hidden className="absolute inset-x-2 -bottom-px h-0.5 rounded bg-accent" />}
+                    {t.player.tabs[tabId]}
+                    {tab === tabId && <span aria-hidden className="absolute inset-x-2 -bottom-px h-0.5 rounded bg-accent" />}
                   </button>
                 );
               })}

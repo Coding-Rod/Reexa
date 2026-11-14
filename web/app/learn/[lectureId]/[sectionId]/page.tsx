@@ -1,6 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
+import { useT } from "@/components/Lang";
 import Player from "@/components/Player";
 
 function Lesson() {
@@ -9,8 +10,9 @@ function Lesson() {
 }
 
 export default function LearnPage() {
+  const t = useT();
   return (
-    <Suspense fallback={<p className="py-16 text-center text-muted">Loading lesson…</p>}>
+    <Suspense fallback={<p className="py-16 text-center text-muted">{t.player.loadingLesson}</p>}>
       <Lesson />
     </Suspense>
   );

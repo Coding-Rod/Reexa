@@ -13,6 +13,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AuthButton from "@/components/AuthButton";
+import { LangMenu, useT } from "@/components/Lang";
 import { fmtTime, loadLastLesson, loadTheme, saveTheme, type Theme } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
@@ -20,6 +21,7 @@ const THEME_ICON = { system: MonitorIcon, light: SunIcon, dark: MoonIcon };
 const NEXT_THEME: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
 
 export default function AppHeader() {
+  const t = useT();
   const pathname = usePathname();
   const router = useRouter();
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -73,10 +75,10 @@ export default function AppHeader() {
   const results = lessons.filter((l) => `${l.title} ${l.lecture}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   const links = [
-    { href: "/", label: "Courses", icon: LibraryBigIcon, active: pathname === "/" || pathname.startsWith("/course/") },
-    ...(lessons.length ? [{ href: continueHref, label: "Continue", icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
-    { href: "/dashboard", label: "Progress", icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
-    { href: "/profile", label: "Profile", icon: UserRoundIcon, active: pathname === "/profile" },
+    { href: "/", label: t.nav.courses, icon: LibraryBigIcon, active: pathname === "/" || pathname.startsWith("/course/") },
+    ...(lessons.length ? [{ href: continueHref, label: t.nav.continue, icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
+    { href: "/dashboard", label: t.nav.progress, icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
+    { href: "/profile", label: t.nav.profile, icon: UserRoundIcon, active: pathname === "/profile" },
   ];
   const ThemeIcon = THEME_ICON[theme];
 
@@ -84,7 +86,7 @@ export default function AppHeader() {
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-surface">
         <div className="mx-auto flex h-[var(--header-h)] max-w-[1600px] items-center gap-2 px-3 sm:gap-4 sm:px-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label="Reexa, courses">
+          <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight" aria-label={t.nav.home}>
             <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-accent text-sm font-extrabold text-accent-fg">
               Re
             </span>
@@ -98,17 +100,17 @@ export default function AppHeader() {
               setPalette(true);
             }}
             className="ml-auto flex h-9 items-center gap-2 rounded-lg border border-border bg-background px-2.5 text-sm text-muted hover:border-accent sm:ml-4 sm:w-64 md:w-80"
-            aria-label="Search lessons"
+            aria-label={t.nav.search}
           >
             <SearchIcon size={16} aria-hidden />
-            <span className="hidden sm:inline">Search lessons</span>
+            <span className="hidden sm:inline">{t.nav.search}</span>
             <kbd className="ml-auto hidden rounded border border-border px-1.5 text-[11px] sm:inline">Ctrl K</kbd>
           </button>
 
-          <nav aria-label="Main" className="flex h-full items-stretch sm:ml-auto">
+          <nav aria-label={t.nav.main} className="flex h-full items-stretch sm:ml-auto">
             {links.map(({ href, label, icon: Icon, active }) => (
               <Link
-                key={label}
+                key={href + label}
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`relative flex min-w-12 flex-col items-center justify-center gap-0.5 px-1.5 text-[11px] sm:min-w-16 ${
@@ -124,6 +126,8 @@ export default function AppHeader() {
 
           <AuthButton />
 
+          <LangMenu />
+
           <button
             type="button"
             onClick={() => {
@@ -132,8 +136,8 @@ export default function AppHeader() {
               setTheme(next);
             }}
             className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-background text-muted hover:border-accent hover:text-accent"
-            aria-label={`Theme: ${theme}. Switch to ${NEXT_THEME[theme]}`}
-            title={`Theme: ${theme}`}
+            aria-label={t.nav.themeLabel(t.nav.themes[theme], t.nav.themes[NEXT_THEME[theme]])}
+            title={t.nav.themeTitle(t.nav.themes[theme])}
           >
             <ThemeIcon size={16} aria-hidden />
           </button>
@@ -142,8 +146,8 @@ export default function AppHeader() {
 
       {palette && (
         <div className="fixed inset-0 z-50 grid place-items-start justify-center px-4 pt-[12vh]">
-          <button type="button" aria-label="Close search" className="absolute inset-0 bg-black/50" onClick={() => setPalette(false)} />
-          <div role="dialog" aria-modal="true" aria-label="Search lessons" className="relative w-[min(640px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-2xl">
+          <button type="button" aria-label={t.nav.closeSearch} className="absolute inset-0 bg-black/50" onClick={() => setPalette(false)} />
+          <div role="dialog" aria-modal="true" aria-label={t.nav.search} className="relative w-[min(640px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-surface shadow-2xl">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -159,14 +163,14 @@ export default function AppHeader() {
                 ref={input}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Jump to a lesson…"
-                aria-label="Lesson title"
+                placeholder={t.nav.searchPlaceholder}
+                aria-label={t.nav.lessonTitle}
                 className="min-w-0 flex-1 bg-transparent text-base outline-none"
               />
               <kbd className="rounded border border-border px-1.5 text-[11px] text-muted">Esc</kbd>
             </form>
             <ul className="max-h-[50vh] overflow-y-auto p-2">
-              {results.length === 0 && <li className="px-3 py-4 text-sm text-muted">No lesson matches “{query}”.</li>}
+              {results.length === 0 && <li className="px-3 py-4 text-sm text-muted">{t.nav.noMatch(query)}</li>}
               {results.map((r) => (
                 <li key={r.key}>
                   <Link

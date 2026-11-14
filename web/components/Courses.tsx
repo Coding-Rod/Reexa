@@ -2,12 +2,14 @@
 import { ArrowRightIcon, BookOpenIcon, CheckIcon, PlayIcon, PlusIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LANGUAGES } from "@/lib/profile";
 import { useUser } from "@/components/AuthButton";
+import { useT } from "@/components/Lang";
+import { isLanguage } from "@/lib/profile";
 import { listCourses, loadProfile, loadProgress, type Progress } from "@/lib/store";
 import type { Manifest } from "@/lib/types";
 
 export default function Courses() {
+  const t = useT();
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [progress, setProgress] = useState<Progress>({});
   const name = useUser()?.displayName?.split(" ")[0] ?? "";
@@ -29,20 +31,17 @@ export default function Courses() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:py-10">
       <header className="mb-8">
-        <p className="text-sm text-muted">{name ? `Hi ${name}` : "Welcome to Reexa"}</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Explore your courses</h1>
-        <p className="mt-2 max-w-2xl text-muted">
-          Each course turns your slides into short narrated lessons with captions, notes and checks. Every claim cites a
-          slide page and is reviewed by a second AI before you see it.
-        </p>
+        <p className="text-sm text-muted">{name ? t.home.hi(name) : t.home.welcome}</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{t.home.title}</h1>
+        <p className="mt-2 max-w-2xl text-muted">{t.home.intro}</p>
       </header>
 
       {manifest && (
-        <ol className="mb-8 grid gap-3 md:grid-cols-3" aria-label="How it works">
+        <ol className="mb-8 grid gap-3 md:grid-cols-3" aria-label={t.home.howItWorks}>
           {[
-            { n: 1, icon: UserRoundIcon, title: "Your profile", text: "Language, learning style and tutor instructions.", href: "/profile", cta: hasProfile ? "Edit profile" : "Set up profile", done: hasProfile },
-            { n: 2, icon: PlusIcon, title: "Add a course", text: "Name it, set your exam date and add the slides.", href: "/courses/new", cta: "Add a course", done: hasCourse || manifest.courses.length > 0 },
-            { n: 3, icon: PlayIcon, title: "Learn and check", text: "Watch, take notes, then prove it in the check.", href: manifest.courses[0] ? `/course/${manifest.courses[0].id}` : "/courses/new", cta: "Open a course", done: Object.values(progress).some((p) => p.watched) },
+            { n: 1, icon: UserRoundIcon, title: t.home.stepProfile, text: t.home.stepProfileText, href: "/profile", cta: hasProfile ? t.home.editProfile : t.home.setupProfile, done: hasProfile },
+            { n: 2, icon: PlusIcon, title: t.home.stepAdd, text: t.home.stepAddText, href: "/courses/new", cta: t.home.stepAdd, done: hasCourse || manifest.courses.length > 0 },
+            { n: 3, icon: PlayIcon, title: t.home.stepLearn, text: t.home.stepLearnText, href: manifest.courses[0] ? `/course/${manifest.courses[0].id}` : "/courses/new", cta: t.home.openCourse, done: Object.values(progress).some((p) => p.watched) },
           ].map(({ n, icon: Icon, title, text, href, cta, done }) => (
             <li key={n} className={`flex flex-col gap-2 rounded-xl border bg-surface p-4 ${done ? "border-border" : "border-accent/40"}`}>
               <div className="flex items-center gap-2">
@@ -51,7 +50,7 @@ export default function Courses() {
                 </span>
                 <h2 className="font-semibold">{title}</h2>
                 <Icon size={16} aria-hidden className="ml-auto text-muted" />
-                <span className="sr-only">{done ? "done" : "to do"}</span>
+                <span className="sr-only">{done ? t.home.done : t.home.todo}</span>
               </div>
               <p className="text-sm text-muted">{text}</p>
               <Link href={href} className="mt-auto pt-1 text-sm text-accent underline-offset-2 hover:underline">
@@ -62,7 +61,7 @@ export default function Courses() {
         </ol>
       )}
 
-      {!manifest && <p className="text-muted">Loading courses…</p>}
+      {!manifest && <p className="text-muted">{t.home.loading}</p>}
 
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {manifest?.courses.map((c) => {
@@ -86,19 +85,19 @@ export default function Courses() {
               </div>
               {c.description && <p className="mt-3 text-sm text-muted">{c.description}</p>}
               <p className="mt-3 text-xs text-muted">
-                {lectures.length} lecture{lectures.length === 1 ? "" : "s"} · {sections.length} lesson{sections.length === 1 ? "" : "s"} · {minutes} min
-                {generating && <span className="ml-1 font-medium text-warn">· generating…</span>}
+                {t.home.counts(lectures.length, sections.length, minutes)}
+                {generating && <span className="ml-1 font-medium text-warn">{t.home.generating}</span>}
               </p>
               {langs.length > 0 && (
                 <p className="mt-2 flex flex-wrap gap-1">
                   {langs.map((l) => (
                     <span key={l} className="rounded-full border border-border px-2 py-0.5 text-xs text-muted">
-                      {LANGUAGES[l as keyof typeof LANGUAGES] ?? l}
+                      {isLanguage(l) ? t.langNames[l] : l}
                     </span>
                   ))}
                 </p>
               )}
-              <div className="mt-4 flex items-center gap-2" aria-label={`${watched} of ${sections.length} lessons watched`}>
+              <div className="mt-4 flex items-center gap-2" aria-label={t.home.watchedOf(watched, sections.length)}>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-accent-soft">
                   <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
                 </div>
@@ -108,7 +107,7 @@ export default function Courses() {
                 href={`/course/${c.id}`}
                 className="mt-4 inline-flex items-center gap-1.5 self-start rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
               >
-                Open <ArrowRightIcon size={14} aria-hidden />
+                {t.home.open} <ArrowRightIcon size={14} aria-hidden />
               </Link>
             </li>
           );
@@ -121,8 +120,8 @@ export default function Courses() {
               className="flex h-full min-h-48 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border p-5 text-center text-muted hover:border-accent hover:text-accent"
             >
               <PlusIcon size={24} aria-hidden />
-              <span className="font-medium">Add a course</span>
-              <span className="text-sm">Name it, set the exam date and add the slides.</span>
+              <span className="font-medium">{t.home.addCard}</span>
+              <span className="text-sm">{t.home.addCardText}</span>
             </Link>
           </li>
         )}

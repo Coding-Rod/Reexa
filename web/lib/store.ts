@@ -75,7 +75,13 @@ export function clearLocalData() {
 }
 
 /** Upload one PDF into a course. Sends ONE combined profile (course settings + user prefs); the server re-checks it. */
-export async function uploadLecture(file: File, course: CourseSettings, profile: LocalProfile): Promise<{ ok: boolean; msg: string }> {
+// Messages are built by the caller in the UI language: started(name) on success, the server's error, or failed.
+export async function uploadLecture(
+  file: File,
+  course: CourseSettings,
+  profile: LocalProfile,
+  msgs: { started: (name: string) => string; failed: string },
+): Promise<{ ok: boolean; msg: string }> {
   const body = new FormData();
   body.append("file", file);
   const { styles, instructions } = profile;
@@ -84,9 +90,9 @@ export async function uploadLecture(file: File, course: CourseSettings, profile:
   try {
     const res = await fetch("/api/upload", { method: "POST", body });
     const data = await res.json();
-    return { ok: res.ok, msg: res.ok ? `${file.name}: generating lessons. The course page updates by itself.` : data.error };
+    return { ok: res.ok, msg: res.ok ? msgs.started(file.name) : (data.error ?? msgs.failed) };
   } catch {
-    return { ok: false, msg: "Upload failed. Is the local server running?" };
+    return { ok: false, msg: msgs.failed };
   }
 }
 

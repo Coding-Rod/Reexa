@@ -2,6 +2,7 @@
 import { FileUpIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useT } from "@/components/Lang";
 import { input } from "@/components/ProfileForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { courseSlug, LANGUAGES, LEVELS, LIMITS, type Language, type Level } from "@/lib/profile";
@@ -9,13 +10,13 @@ import { clearDraft, loadDraft, loadProfile, saveCourse, saveDraft, uploadLectur
 
 const TABS = ["course", "language", "materials", "review"] as const;
 type Tab = (typeof TABS)[number];
-const LABELS: Record<Tab, string> = { course: "Course", language: "Language", materials: "Materials", review: "Review" };
 const ghost = "rounded-lg border border-border px-4 py-2 hover:border-accent";
 type Draft = { tab: Tab; title: string; examDate: string; level: Level; language: Language | ""; fileNames: string[] };
 const kb = (n: number) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`);
 const primary = "ml-auto rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg disabled:opacity-50";
 
 export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
+  const t = useT();
   const [tab, setTab] = useState<Tab>("course");
   const [title, setTitle] = useState("");
   const [examDate, setExamDate] = useState("");
@@ -56,7 +57,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
   }, [restored, done, tab, title, examDate, level, language, files, missingFiles]);
 
   function startOver() {
-    if (!confirm("Start over? This clears what you entered for this course.")) return;
+    if (!confirm(t.courseForm.startOverConfirm)) return;
     clearDraft("course");
     setTab("course");
     setTitle("");
@@ -72,55 +73,55 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
 
   const profileOk = profile?.armor?.verdict === "pass";
   const slug = courseSlug(title);
-  const step = (t: Tab, d: number) => TABS[TABS.indexOf(t) + d];
+  const step = (id: Tab, d: number) => TABS[TABS.indexOf(id) + d];
 
   async function save() {
     setError("");
     if (!title.trim()) {
-      setError("Add the course name first.");
+      setError(t.courseForm.needName);
       return setTab("course");
     }
-    if (files.length && !profileOk) return setError("Set your preferences in your profile before uploading.");
+    if (files.length && !profileOk) return setError(t.courseForm.needProfile);
     setBusy(true);
     const settings = { title: title.trim().slice(0, LIMITS.course), exam_date: examDate || null, level, ...(language ? { language } : {}) };
     saveCourse(slug, settings);
     const out: string[] = [];
-    for (const f of files) out.push((await uploadLecture(f, settings, profile!)).msg);
+    for (const f of files) out.push((await uploadLecture(f, settings, profile!, t.upload)).msg);
     setLog(out);
     setBusy(false);
     setDone(true);
     clearDraft("course");
   }
 
-  const nav = (t: Tab) => (
+  const nav = (id: Tab) => (
     <div className="flex gap-2 pt-2">
-      {step(t, -1) && (
-        <button type="button" onClick={() => setTab(step(t, -1))} className={ghost}>
-          Back
+      {step(id, -1) && (
+        <button type="button" onClick={() => setTab(step(id, -1))} className={ghost}>
+          {t.common.back}
         </button>
       )}
-      <button type="button" onClick={() => setTab(step(t, 1))} className={primary}>
-        Continue
+      <button type="button" onClick={() => setTab(step(id, 1))} className={primary}>
+        {t.common.continue}
       </button>
     </div>
   );
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-muted">
+      <nav aria-label={t.common.breadcrumb} className="text-sm text-muted">
         <Link href="/" className="hover:text-accent">
-          Courses
+          {t.common.courses}
         </Link>{" "}
-        › <span aria-current="page">Add a course</span>
+        › <span aria-current="page">{t.courseForm.title}</span>
       </nav>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">Add a course</h1>
-      <p className="mt-2 text-muted">Name the course, pick its language and add the slides. Your learning style comes from your profile.</p>
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight">{t.courseForm.title}</h1>
+      <p className="mt-2 text-muted">{t.courseForm.intro}</p>
       <div className="mt-3 flex items-center gap-3 text-sm">
         <span aria-live="polite" className="text-muted">
-          {draftSaved && !done ? "Draft saved" : ""}
+          {draftSaved && !done ? t.common.draftSaved : ""}
         </span>
         <button type="button" onClick={startOver} className="ml-auto text-muted underline hover:text-accent">
-          Start over
+          {t.common.startOver}
         </button>
       </div>
 
@@ -129,7 +130,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
           {error}{" "}
           {!profileOk && (
             <Link href="/profile" className="underline">
-              Open profile
+              {t.common.openProfile}
             </Link>
           )}
         </p>
@@ -137,9 +138,9 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="mt-6">
         <TabsList variant="line">
-          {TABS.map((t, i) => (
-            <TabsTrigger key={t} value={t}>
-              <span className="text-xs text-muted">{i + 1}</span> {LABELS[t]}
+          {TABS.map((id, i) => (
+            <TabsTrigger key={id} value={id}>
+              <span className="text-xs text-muted">{i + 1}</span> {t.courseForm.tabs[id]}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -148,19 +149,19 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label htmlFor="course" className="mb-1 block font-medium">
-                Course name
+                {t.courseForm.name}
               </label>
-              <input id="course" className={input} maxLength={LIMITS.course} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Databases 2" />
+              <input id="course" className={input} maxLength={LIMITS.course} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.courseForm.namePlaceholder} />
             </div>
             <div>
               <label htmlFor="exam" className="mb-1 block font-medium">
-                Exam date <span className="text-sm font-normal text-muted">(optional)</span>
+                {t.courseForm.examDate} <span className="text-sm font-normal text-muted">{t.common.optional}</span>
               </label>
               <input id="exam" type="date" className={input} value={examDate} onChange={(e) => setExamDate(e.target.value)} />
             </div>
           </div>
           <fieldset>
-            <legend className="mb-2 font-medium">Your level in this course</legend>
+            <legend className="mb-2 font-medium">{t.courseForm.level}</legend>
             <div className="flex flex-wrap gap-2">
               {LEVELS.map((l) => (
                 <label
@@ -168,7 +169,7 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
                   className={`cursor-pointer rounded-full border px-4 py-1.5 capitalize has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${level === l ? "border-accent bg-accent-soft" : "border-border"}`}
                 >
                   <input type="radio" name="level" value={l} checked={level === l} onChange={() => setLevel(l)} className="sr-only" />
-                  {l}
+                  {t.levels[l]}
                 </label>
               ))}
             </div>
@@ -179,17 +180,17 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
         <TabsContent value="language" className="space-y-6">
           <div>
             <label htmlFor="language" className="mb-1 block font-medium">
-              Output language for this course
+              {t.courseForm.outputLanguage}
             </label>
             <select id="language" className={input} value={language} onChange={(e) => setLanguage(e.target.value as Language | "")}>
-              <option value="">Profile default{profile ? ` (${LANGUAGES[profile.language]})` : ""}</option>
-              {Object.entries(LANGUAGES).map(([code, label]) => (
-                <option key={code} value={code} lang={code}>
-                  {label}
+              <option value="">{t.courseForm.profileDefault(profile ? t.langNames[profile.language] : null)}</option>
+              {(Object.keys(LANGUAGES) as Language[]).map((code) => (
+                <option key={code} value={code}>
+                  {t.langNames[code]}
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-sm text-muted">Narration, captions, notes and quizzes. Slide quotes stay in their original language.</p>
+            <p className="mt-1 text-sm text-muted">{t.courseForm.languageHint}</p>
           </div>
           {nav("language")}
         </TabsContent>
@@ -210,27 +211,27 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
                 }}
               />
               <FileUpIcon size={22} aria-hidden className="text-muted" />
-              <span className="font-medium">Choose lecture PDFs</span>
-              <span className="text-sm text-muted">Slides, exercises or past exams · PDF · max 50 MB each</span>
+              <span className="font-medium">{t.courseForm.choosePdfs}</span>
+              <span className="text-sm text-muted">{t.courseForm.pdfHint}</span>
             </label>
           ) : (
             <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
-              Upload runs in the local version. You can save the course now and add slides later.
+              {t.courseForm.localOnly}
             </p>
           )}
           {missingFiles.length > 0 && files.length === 0 && (
             <p role="status" className="rounded-lg border border-warn/40 bg-warn/10 p-3 text-sm">
-              Your draft had {missingFiles.join(", ")}. Files can&apos;t be kept after a reload: please re-attach your files.
+              {t.courseForm.missingFiles(missingFiles.join(", "))}
             </p>
           )}
           {files.length > 0 && (
-            <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm" aria-label="Selected files">
+            <ul className="divide-y divide-border rounded-xl border border-border bg-surface text-sm" aria-label={t.courseForm.selectedFiles}>
               {files.map((f) => (
                 <li key={f.name} className="flex items-center gap-3 px-3 py-2">
                   <span className="min-w-0 flex-1 truncate">{f.name}</span>
                   <span className="text-xs text-muted">{kb(f.size)}</span>
-                  <button type="button" onClick={() => setFiles((cur) => cur.filter((x) => x !== f))} className="text-xs text-bad underline" aria-label={`Remove ${f.name}`}>
-                    Remove
+                  <button type="button" onClick={() => setFiles((cur) => cur.filter((x) => x !== f))} className="text-xs text-bad underline" aria-label={t.courseForm.removeFile(f.name)}>
+                    {t.courseForm.remove}
                   </button>
                 </li>
               ))}
@@ -243,19 +244,19 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
           <dl className="grid gap-3 rounded-xl border border-border bg-surface p-4 text-sm sm:grid-cols-2">
             {(
               [
-                ["Course", title || "—", "course"],
-                ["Exam date", examDate || "—", "course"],
-                ["Level", level, "course"],
-                ["Language", language ? LANGUAGES[language] : `Profile default${profile ? ` (${LANGUAGES[profile.language]})` : ""}`, "language"],
-                ["Materials", files.length ? `${files.length} PDF${files.length === 1 ? "" : "s"}` : "None yet", "materials"],
+                [t.courseForm.review.course, title || "—", "course"],
+                [t.courseForm.review.examDate, examDate || "—", "course"],
+                [t.courseForm.review.level, t.levels[level], "course"],
+                [t.courseForm.review.language, language ? t.langNames[language] : t.courseForm.profileDefault(profile ? t.langNames[profile.language] : null), "language"],
+                [t.courseForm.review.materials, files.length ? t.courseForm.pdfCount(files.length) : t.courseForm.noneYet, "materials"],
               ] as const
-            ).map(([k, v, t]) => (
+            ).map(([k, v, tabId]) => (
               <div key={k}>
                 <dt className="text-muted">{k}</dt>
                 <dd className="flex items-start justify-between gap-2">
-                  <span className="break-words capitalize">{v}</span>
-                  <button type="button" onClick={() => setTab(t)} className="shrink-0 text-xs text-accent underline">
-                    Edit
+                  <span className="break-words">{v}</span>
+                  <button type="button" onClick={() => setTab(tabId)} className="shrink-0 text-xs text-accent underline">
+                    {t.common.edit}
                   </button>
                 </dd>
               </div>
@@ -263,21 +264,21 @@ export default function CourseForm({ allowUpload }: { allowUpload: boolean }) {
           </dl>
           {done ? (
             <div role="status" className="space-y-2 rounded-lg border border-good/40 bg-good/10 p-3 text-sm">
-              <p className="font-medium text-good">✓ Course saved.</p>
+              <p className="font-medium text-good">{t.courseForm.saved}</p>
               {log.map((m) => (
                 <p key={m}>{m}</p>
               ))}
               <Link href={`/course/${slug}`} className="inline-flex rounded-lg bg-accent px-3.5 py-2 font-medium text-accent-fg">
-                Go to {title}
+                {t.courseForm.goTo(title)}
               </Link>
             </div>
           ) : (
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={() => setTab("materials")} className={ghost}>
-                Back
+                {t.common.back}
               </button>
               <button type="button" onClick={save} disabled={busy} className={primary}>
-                {busy ? "Creating…" : "Create course and generate lessons"}
+                {busy ? t.courseForm.creating : t.courseForm.create}
               </button>
             </div>
           )}
