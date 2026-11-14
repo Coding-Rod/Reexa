@@ -19,7 +19,8 @@
     "productName": "Reexa",
     "files": [
       "main.js",
-      "package.json"
+      "package.json",
+      "build/icon.png"
     ],
     "directories": {
       "output": "dist",
