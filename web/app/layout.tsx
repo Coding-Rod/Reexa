@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 import AppHeader from "@/components/AppHeader";
 import AuthGate from "@/components/AuthGate";
+import TutorFab from "@/components/TutorFab";
 import { LangProvider } from "@/components/Lang";
 import { dicts } from "@/lib/i18n";
 import { getLang } from "@/lib/lang";
@@ -27,7 +28,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Suspense fallback={<div className="h-[var(--header-h)] border-b border-border bg-surface" />}>
             <AppHeader />
           </Suspense>
-          <AuthGate>{children}</AuthGate>
+          <AuthGate>
+            {children}
+            <TutorFab />
+          </AuthGate>
           <Toaster
             position="bottom-center"
             closeButton
