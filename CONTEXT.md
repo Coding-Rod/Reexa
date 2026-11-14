@@ -46,7 +46,7 @@ control (view- vs conflict-serializability, VSR/CSR).
 **Trust and safety (our answer to "AI hallucinates")**
 - **Grounded:** every claim cites file + page of the uploaded material (NotebookLM-style). If the
   material doesn't cover something, the tutor says so.
-- **AI as jury:** a second model from a different family (`openai/gpt-5.5`) checks every generated
+- **AI as jury:** a second, independent model (`anthropic/claude-haiku-5.5`, own prompt, no access to the generator's reasoning; the event key only allows Anthropic models) checks every generated
   item against its sources before the student sees it. It checks faithfulness, correctness, no
   answer leak, and language. A failed item is regenerated once; if it fails again it is withheld
   and flagged.
@@ -64,11 +64,13 @@ full-curriculum overview, other courses.
 
 | Area | State |
 |---|---|
-| Live app | **https://web-zeta-six-87.vercel.app** (public; sample content; upload disabled online) |
+| Live app | **https://web-zeta-six-87.vercel.app** (public; real AI lessons; live AI diagnosis; upload disabled online; installable as PWA) |
 | Repo | https://github.com/Coding-Rod/Reply_Hackathon (private: ask Rodri for access) |
 | Web app (Next.js) | Done: library, `/start`, player, notes, check, diagnosis, targeted video |
 | Video pipeline (Python) | Done: PDF → outline → script/notes/quiz → jury → voice + captions → ManimGL video |
-| Real AI content | **Waiting for the OpenRouter key**; current content is hand-written sample (stub mode) |
+| Real AI content | Done: Databases 2, Concurrency ×2 + Triggers ×2 lessons, all jury-passed (one after a regeneration); spend so far < $1 of the $10 event key |
+| Desktop app | `desktop/` (Electron): online mode, or local mode with Ollama models (offline, private) |
+| Sign-in | Google via Firebase (needs the Firebase web config) |
 | Model Armor | Code done; needs a personal GCP project (`scripts/setup-model-armor.sh`) |
 | Demo video for the misconception | Pre-generated (58 s) |
 
@@ -81,7 +83,7 @@ full-curriculum overview, other courses.
   mini-video), `scene.py` (fixed ManimGL templates: title, bullets, formula, schedule, graph; the
   LLM fills in content but never writes code), `tts.py` (edge-tts voices per language, VTT
   captions).
-- **LLM:** OpenRouter. Generator `anthropic/claude-sonnet-5.5`, jury `openai/gpt-5.5`.
+- **LLM:** OpenRouter (shared event key, capped). Generator `anthropic/claude-sonnet-5.5`, jury `anthropic/claude-haiku-5.5`. Desktop local mode: any Ollama model.
 - **Content:** `web/public/content/<lecture>/<section>/` holds video.mp4, captions.vtt and
   section.json. The JSON is blocked from direct download.
 - **Specs:** `specs/001-misconception-video-tutor/` (spec, plan, contracts),
@@ -126,8 +128,10 @@ full-curriculum overview, other courses.
 
 - Course: Databases 2, Politecnico di Milano. Material: 9 slide decks, exercises, about 30 past
   exams (2022–2026).
-- Demo misconception: "treating CSR (conflict-serializability) as the definition of
-  serializability; a conflict cycle does not rule out VSR, because of blind writes", for example
-  `r1(x) w2(x) w1(x) w3(x)`. Source: `02-Concurrency.pdf` pp. 34, 37, 41.
+- Demo path: Courses → Databases 2 → Concurrency, lesson 2 "Schedules and View-Serializability" →
+  Check, question 1 → choose "It must run each transaction in one contiguous block" with reasoning
+  "serializable means the transactions run one after another without any interleaving" → diagnosis
+  "confuses serializable with serial" → targeted 57 s video "Serial vs. Serializable: Interleaving Is
+  Allowed" (jury pass, `02-Concurrency.pdf` pp. 19–20) → new re-check question.
 - Video length: 1–2.5 min per lecture section; about 1 min per targeted video.
 - Rendering takes about 1.5–3× the video length, so the demo uses pre-generated videos.
