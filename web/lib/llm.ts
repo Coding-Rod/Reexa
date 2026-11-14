@@ -7,8 +7,21 @@ export const llmEnabled = () => !!process.env.OPENROUTER_API_KEY && process.env.
 
 type Msg = { role: "system" | "user"; content: string };
 
+// Shared event key with a hard $ cap: bound how fast a public site can spend it.
+// Callers already catch errors and fall back to stored content.
+// ponytail: per-instance sliding window; move to Redis/KV if spend matters across many instances.
+const MAX_CALLS_PER_HOUR = Number(process.env.LLM_MAX_CALLS_PER_HOUR || 60);
+const calls: number[] = [];
+function takeBudget() {
+  const now = Date.now();
+  while (calls.length && now - calls[0] > 3_600_000) calls.shift();
+  if (calls.length >= MAX_CALLS_PER_HOUR) throw new Error("LLM hourly call budget reached");
+  calls.push(now);
+}
+
 // OpenRouter is OpenAI-compatible: plain fetch, no SDK.
 export async function chatJSON<T>(model: string, messages: Msg[]): Promise<T> {
+  takeBudget();
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
