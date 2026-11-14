@@ -8,6 +8,7 @@ import {
   SearchIcon,
   SunIcon,
   UserRoundIcon,
+  DownloadIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -79,6 +80,7 @@ export default function AppHeader() {
     ...(lessons.length ? [{ href: continueHref, label: t.nav.continue, icon: PlayIcon, active: pathname.startsWith("/learn") }] : []),
     { href: "/dashboard", label: t.nav.progress, icon: ChartNoAxesColumnIncreasingIcon, active: pathname === "/dashboard" },
     { href: "/profile", label: t.nav.profile, icon: UserRoundIcon, active: pathname === "/profile" },
+    { href: "/download", label: t.nav.download, icon: DownloadIcon, active: pathname === "/download" },
   ];
   const ThemeIcon = THEME_ICON[theme];
 
