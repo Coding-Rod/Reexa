@@ -1,136 +1,114 @@
-# Reexa · AI on Campus · Reply Student Tech Clash 2026
+<div align="center">
 
-Our team's repo for **AI on Campus**, the 2026 edition of Reply's [Student Tech Clash](https://studentclash.reply.com/) hackathon (Politecnico di Milano team).
+<img src="docs/logo.png" alt="Reexa logo" width="96" />
 
-## The event
+# Reexa
 
-Student Tech Clash is Reply's hackathon for university students. The schedule runs from the opening and case-study reveal, through hacking time with mentors, to a final pitch.
+**Find the idea behind the mistake.**
 
-**Theme:** how AI can change education, training and learning. Pick a real problem that students or teachers face in learning or teaching at the university, then design and build an AI-based solution for it. Start with the problem, not the tool.
+Your course slides become a personal playlist of narrated, captioned video lessons.
+When you get a question wrong, Reexa finds the idea you misunderstood, makes you a one-minute video about exactly that idea, and asks a new question to prove you got it.
 
-**Out of scope:** administration and logistics, such as enrolment, fees, timetables, room booking, campus services or transport. The problem must be about how students learn, how teachers teach, or how learning is assessed.
+[**Live demo**](https://web-zeta-six-87.vercel.app) · [**Desktop app**](https://web-zeta-six-87.vercel.app/download) · [Pitch & deck notes](docs/PRESENTATION.md)
 
-## Assignments
+*Built in one day at the **Reply Student Tech Clash 2026, "AI on Campus"** (Politecnico di Milano team).*
 
-| Level | Status | What |
-|-------|--------|------|
-| 1 · Design | Required | Pick a real problem, design an AI-based solution, pitch it in 60 seconds |
-| 2 · Build | Required | Build a working AI agent prototype |
-| 3 · Extra | Optional (bonus) | Multi-agent system, knowledge graph and/or launch campaign |
+<img src="docs/screenshots/04-diagnosis.png" alt="A wrong answer with its reasoning, diagnosed by Reexa" width="900" />
 
-You can win with Levels 1 and 2 alone. A strong idea and a great working prototype matter most.
+</div>
 
-### Level 1 · Design (required)
+---
 
-Choose a problem in one of three suggested directions, or bring another one:
+## The problem
 
-- **Teaching:** understanding what students haven't grasped, adapting explanations, creating materials for diverse learners, without replacing human judgement.
-  - Examples: after-class Q&A on lecture content; turning last year's slides into a first draft of the updated course; a 24/7 digital twin of the lecturer.
-- **Learning:** understanding mistakes, building resilient mental models, knowing what you truly know.
-  - Examples: practice questions that adapt to what you keep getting wrong; an oral exam simulator that pushes back on shaky reasoning.
-- **Assessment:** revealing what students actually know, not what they can find or generate.
-  - Examples: essay feedback that explains *why* an argument fails; a pre-exam readiness check that shows which gaps still matter.
+It's the night before your exam. You get an exercise wrong. The solution sheet tells you *that* you're wrong, not *why*. Re-reading the same slides rarely helps, and a chatbot hands you the answer, so the misunderstanding comes with you into the exam.
 
-Tips:
-- Start from your own experience: a course where you got stuck, an exam you under-prepared for.
-- Be specific: one course, one exam, one moment.
-- Ask whether it would still work without AI. If yes, you probably don't need AI. If no, make that argument.
-- Name the risks: who owns the student data, what happens if the tool goes down the night before an exam, which students lack reliable access.
+## What Reexa does
 
-### Level 2 · Build (required)
+1. **Upload your course material:** slides, notes, past exams, exercises (drag and drop, all optional, at least one PDF).
+2. **Watch your playlist:** each lecture becomes short narrated lessons with captions, a clickable transcript and AI notes, in your language, in the style of 3Blue1Brown animations.
+3. **Check yourself:** pick an answer **and explain your reasoning**. Nothing is revealed before you try.
+4. **Get a diagnosis:** Reexa names the specific idea that broke, cites the slide page, and offers a **1-minute video made for that mistake**.
+5. **Prove it:** a new question on the same idea closes the gap; your progress page shows what's left.
 
-Build a working AI agent that demonstrates the core of the Level 1 solution. Unlike a simple chatbot, the agent must:
+| | |
+|---|---|
+| <img src="docs/screenshots/03-lesson.png" alt="Lesson player with playlist, transcript and cited AI notes" /> | <img src="docs/screenshots/05-targeted-video.png" alt="A targeted mini-video made for the student's mistake" /> |
+| **Lesson player:** animated video, captions, transcript you can click, notes where every claim links to its slide page. | **Made for your mistake:** a short video on the misunderstood idea, reviewed by the AI jury, then a new question. |
+| <img src="docs/screenshots/06-tutor.png" alt="Course tutor chat answering from the course slides" /> | <img src="docs/screenshots/07-progress.png" alt="Progress dashboard with exam countdown and open gaps" /> |
+| **Course tutor:** ask anything about the course; it answers only from your slides, cites pages and nudges you with a question instead of giving answers away. | **Progress:** exam countdown, lessons watched, concepts closed and the next gap to study. |
+| <img src="docs/screenshots/08-add-course.png" alt="Add a course: typed materials with drag and drop" /> | <img src="docs/screenshots/01-courses.png" alt="Courses landing page" /> |
+| **Add a course:** typed materials, exam date, level, lesson language and an optional teaching-tone prompt (security-checked). | **Your courses:** everything in one place, with progress per course. |
 
-1. **Work with real material:** lecture notes, slides, syllabus, exam rules or past exercises, not just what the model already knows.
-2. **Do something, not just say something:** take at least one action beyond replying, such as generating and scoring a quiz, tracking recurring mistakes, creating a study plan or calendar entry, or flagging a question for the lecturer.
-3. **Know its limits:** help someone think without thinking for them. A tutor that guides instead of giving the answer; feedback that explains instead of rewriting.
+<p align="center"><img src="docs/screenshots/10-mobile-light.png" alt="Mobile view in light theme" width="260" /></p>
 
-Two paths, pick one:
-- **Path A, no code / low code:** assemble the agent with ready-made AI tools. Write its instructions like a spec, with sections for ROLE, GOAL, KNOWLEDGE, RULES, PROCEDURE and MEMORY.
-- **Path B, coding:** any language, any model.
+## Trust by design
 
-Deliverables:
-- [ ] Agent instructions (prompt or configuration), with a short note on the key design choices
-- [ ] Description of the material the agent uses and the action(s) it can take
-- [ ] Example interactions with different users and situations, including one where the agent holds its boundary
-- [ ] Screenshots or an export of the agent's setup or workflow
-- [ ] (Optional, recommended) Short demo video of a live interaction
+AI study tools hallucinate, so Reexa is built against it:
 
-Tips: build one core flow well rather than many features poorly. Use pre-trained models and existing frameworks; there's no time to train anything.
+- **Cited:** every lesson, note, quiz and diagnosis is built from the uploaded pages and links to the exact slide page.
+- **Checked:** an independent **AI jury** reviews every generated item for faithfulness, correctness and answer leaks. Failures are regenerated once, then withheld and flagged. (One of the demo lessons was rejected by the jury and regenerated before any student saw it.)
+- **Guarded:** free-text student instructions pass a prompt-injection guard (**Google Model Armor** when configured, local rules otherwise) and only ever act as style hints.
+- **Honest:** it never reveals an answer before you try, and the targeted video explains the idea, not the solution.
+- **Private:** notes and progress stay in your browser; your name is never sent to the AI.
 
-### Level 3 · Extra (optional)
+## How it works
 
-Three independent paths. Do one, several or a partial one; everything counts toward evaluation.
+```
+PDF ──► page-by-page text ──► outline ──► lesson script, notes & quiz ──► AI jury ──► voice-over + captions ──► ManimGL animation ──► playlist
+                                            (Claude Sonnet)               (Claude Haiku)   (edge-tts, VTT)        (fixed visual templates)
+```
 
-- **Path A, multi-agent system:** extend the Problem Identifier Agent into a multi-agent workflow.
-  - *Problem Identifier Agent:* interviews the user with adaptive follow-ups and produces a structured Problem Brief.
-  - *Two or more Solver Agents* with distinct roles (for example learning design, technical feasibility, inclusion/risk/governance). They all receive the same brief.
-  - *Independent proposals:* each covers approach, user value, required information or tools, risks, assumptions and implementation considerations.
-  - *Orchestration and selection:* proposals are compared, combined or selected by an orchestrator or evaluator agent, transparent criteria or a human decision, with an explanation of why the final pick fits the problem.
-  - *Clarification loop:* a solver returns targeted questions when the brief is incomplete, conflicting or vague.
-  - *Human review:* a person validates the problem, reviews alternatives, approves the recommendation or stops the workflow. Assumptions and uncertainty stay visible.
-- **Path B, knowledge graph:** ground the agent in a graph of courses, concepts and criteria so every answer can be explained.
-- **Path C, launch campaign:** name, tagline, channels and timing to get the tool adopted at the university.
+| Part | Stack |
+|---|---|
+| Web app | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn-style UI, deployed on Vercel |
+| Video pipeline | Python, ManimGL (3Blue1Brown's library), edge-tts, ffmpeg, pdftotext |
+| AI | OpenRouter (any OpenAI-compatible endpoint): Claude Sonnet writes, Claude Haiku judges; Ollama for local/offline mode |
+| Safety | Google Model Armor / local prompt guard, AES-GCM sealed tokens so answers never reach the browser early |
+| Auth | Firebase (Google sign-in) |
+| Apps | Installable web app (PWA) · Electron desktop app (Windows, Linux) with an offline local-AI mode |
+| i18n | 8 interface languages, 6 lesson languages |
 
-## Evaluation
+Repository layout:
 
-Judges apply three questions at every level:
+```
+web/       Next.js app (pages, API routes, i18n dictionaries)
+worker/    Python pipeline: PDF → lessons, targeted explanation videos
+desktop/   Electron shell (online or local Ollama mode)
+specs/     Spec Kit spec, plan and contracts
+docs/      Pitch pack, hackathon brief, screenshots
+```
 
-1. **Is this genuinely new, or just faster?** Speeding up an existing process is interesting; changing what's possible is the goal.
-2. **Does this help someone think, or does it think for them?** Know which side of the line the idea is on.
-3. **Who benefits, and who might be left out?** Every design choice includes someone and excludes someone else.
+## Run it locally
 
-### Criteria
+```bash
+# 1. Web app
+cd web && pnpm install
+cp ../.env.example ../.env.local   # set OPENROUTER_API_KEY, or LLM_STUB=1 to run without AI
+ln -s ../.env.local .env.local
+pnpm dev                            # http://localhost:3000
 
-| Criterion | Weight |
-|-----------|--------|
-| Creativity & Innovation | 40% |
-| Impact | 20% |
-| Technical | 20% |
-| Effective Presentation | 20% |
+# 2. Video pipeline (needs a conda env with ManimGL, LaTeX and ffmpeg)
+conda create -n 3b1b python=3.12 && conda activate 3b1b
+pip install -r worker/requirements.txt
+python -m worker.pipeline path/to/lecture.pdf --max-sections 2
 
-### How to present
+# 3. Desktop app
+cd desktop && pnpm install && pnpm start      # or: pnpm local (Ollama)
+```
 
-1. **Stage 1, every team: 60-second elevator pitch.** No slides. Cover the problem (who experiences it and when), the AI-based solution, and its impact. When the minute is up, listeners should be able to repeat the idea in their own words. Be ready to defend your choices.
-2. **Stage 2, top 3 teams only: slide presentation, 5 minutes max.** Problem, idea, how it works, impact. Be ready to defend your choices.
+> The sample course content in this public repo has the verbatim slide text removed. Citations, AI notes, videos and quizzes are generated material.
 
-## Hand-in checklist
+## Roadmap
 
-The presentation is required. If possible, also share the materials produced (agent, documents, prototype files).
-
-**Level 1 · Pitch slides**
-- [ ] Problem: what it is and who experiences it
-- [ ] Idea: the AI solution in plain language
-- [ ] Use scenario in a real moment
-- [ ] Target user and context
-- [ ] Success measures
-- [ ] 60-second pitch rehearsed
-
-**Level 2 · Prototype**
-- [ ] Agent instructions + note on key design choices
-- [ ] Description of material and action(s)
-- [ ] Screenshots or export of setup / workflow
-- [ ] Demo video (optional)
+- Download lectures for offline study, with update notices on new versions
+- Native mobile apps
+- Progress synced to your account
+- "Sources differ" alerts when slides and notes disagree
+- An opt-in professor view of the most common misconceptions
 
 ## Team
 
-- Abhishek Kishor
-- Alisha Fernandez
-- Deniz Akyüz
-- Sergio Rodrigo Fernandez Testa
+Abhishek Kishor · Alisha Fernandez · Deniz Akyüz · Sergio Rodrigo Fernandez Testa
 
-## Workflow
-
-Built with [Spec Kit](https://github.com/github/spec-kit) (spec-driven development):
-
-1. `/speckit-constitution`: project principles
-2. `/speckit-specify`: what we build and why
-3. `/speckit-plan`: tech stack and architecture
-4. `/speckit-tasks`: task breakdown
-5. `/speckit-implement`: build it
-
-## Draft app
-
-- `worker/`: Python pipeline (PDF → outline → script, notes and quiz → AI jury → voiceover + captions → ManimGL video). Run: `conda run -n 3b1b python -m worker.pipeline <pdf> --max-sections 1` (`LLM_STUB=1` without an API key).
-- `web/`: Next.js app (library, player with captions, transcript, AI notes and student notes, check with diagnosis). Run: `cd web && pnpm dev`.
-- Config: copy `.env.example` to `.env.local` and set `OPENROUTER_API_KEY`.
+*Built at the Reply Student Tech Clash 2026, "AI on Campus". Hackathon brief: [docs/HACKATHON.md](docs/HACKATHON.md).*
