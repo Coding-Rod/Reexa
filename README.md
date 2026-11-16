@@ -114,9 +114,10 @@ The presentation is required. If possible, also share the materials produced (ag
 
 ## Team
 
-| Name | Role |
-|------|------|
-| | |
+- Abhishek Kishor
+- Alisha Fernandez
+- Deniz Akyüz
+- Sergio Rodrigo Fernandez Testa
 
 ## Workflow
 

@@ -1,5 +1,7 @@
 # Team context: Reexa · AI on Campus · Reply Student Tech Clash 2026
 
+**Team:** Abhishek Kishor · Alisha Fernandez · Deniz Akyüz · Sergio Rodrigo Fernandez Testa
+
 Paste this file into your AI assistant (ChatGPT, Claude, Gemini, Cursor…) as the first message,
 then add your own goal. Everything below is the shared truth for the team. Last updated 2026-11-14 14:20.
 

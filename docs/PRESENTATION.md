@@ -1,5 +1,7 @@
 # Reexa: presentation pack (Canva)
 
+**Team:** Abhishek Kishor · Alisha Fernandez · Deniz Akyüz · Sergio Rodrigo Fernandez Testa
+
 *AI on Campus · Reply Student Tech Clash 2026 · Politecnico di Milano*
 
 Contents: §1 context for Canva, §2 the 60-second pitch (Stage 1, no slides), §3 the 5-minute deck slide by slide (Stage 2, top 3 only), §4 the live demo script, §5 Q&A prep.
@@ -47,9 +49,9 @@ Rehearse with a timer; about 150 words. Every listener should be able to repeat 
 Timing column = target cumulative time. Speaker notes are written to be said out loud.
 
 ### Slide 1: Title (0:00 → 0:15)
-- **On slide:** logo, **Reexa**, tagline *"Find the idea behind the mistake."*, small line: *AI on Campus · Reply Student Tech Clash 2026 · Team ⟨name⟩*
+- **On slide:** logo, **Reexa**, tagline *"Find the idea behind the mistake."*, small line: *AI on Campus · Reply Student Tech Clash 2026 · Abhishek Kishor · Alisha Fernandez · Deniz Akyüz · Sergio Rodrigo Fernandez Testa*
 - **Visual:** the R logo large, centered, with a soft teal glow on the navy background.
-- **Say:** "Hi, we're ⟨team⟩. This is Reexa."
+- **Say:** "Hi, we're Abhishek Kishor, Alisha Fernandez, Deniz Akyüz and Sergio Rodrigo Fernandez Testa. This is Reexa."
 - **Canva prompt:** *Title slide, centered white rounded-tile logo with a navy R, product name "Reexa" in large white bold sans, tagline below in teal #75FBF6, faint purple radial glow behind the logo, background #0F1D3A.*
 
 ### Slide 2: The moment (0:15 → 0:50)
