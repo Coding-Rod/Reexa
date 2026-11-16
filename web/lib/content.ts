@@ -50,8 +50,11 @@ export async function writeManifest(m: Manifest) {
 export async function readSection(lectureId: string, sectionId: string): Promise<Section | null> {
   if (!isId(lectureId) || !isId(sectionId)) return null;
   try {
-    const file = path.join(CONTENT_DIR, lectureId, sectionId, "section.json");
-    return JSON.parse(await readFile(file, "utf8"));
+    const dir = path.join(CONTENT_DIR, lectureId, sectionId);
+    const section: Section = JSON.parse(await readFile(path.join(dir, "section.json"), "utf8"));
+    // Verbatim slide text lives in passages.json: deployed with the app, kept out of git (course copyright).
+    if (!section.passages) section.passages = JSON.parse(await readFile(path.join(dir, "passages.json"), "utf8").catch(() => "[]"));
+    return section;
   } catch {
     return null;
   }

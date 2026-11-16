@@ -58,6 +58,8 @@ def main():
     if not (sec_dir / "section.json").resolve().is_relative_to(pipeline.CONTENT.resolve()):
         sys.exit("bad lecture/section")
     section = json.loads((sec_dir / "section.json").read_text())
+    if "passages" not in section and (sec_dir / "passages.json").exists():
+        section["passages"] = json.loads((sec_dir / "passages.json").read_text())
     question = next((q for q in section["quiz"] if q["id"] == args.question), None)
     if question is None:
         sys.exit(f"unknown question: {args.question}")

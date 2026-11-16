@@ -228,6 +228,8 @@ def build_section(file, pages, lecture_id, idx, spec, profile):
         "jury": {"verdict": status, "reason": verdict.get("reason", ""), "model": JURY_MODEL, "attempts": attempts},
         "quiz": section.get("quiz", []),
     }
+    # Verbatim slide text goes to passages.json (gitignored, deployed): never committed with the course content.
+    (out_dir / "passages.json").write_text(json.dumps(data.pop("passages"), indent=1, ensure_ascii=False))
     (out_dir / "section.json").write_text(json.dumps(data, indent=2, ensure_ascii=False))
     return {"id": sid, "title": data["title"], "duration": duration, "path": f"{lecture_id}/{sid}"}
 

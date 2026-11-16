@@ -1,0 +1,7 @@
+# Present so the Vercel CLI does NOT fall back to .gitignore:
+# public/content/**/passages.json is gitignored but must be deployed (the app reads it server-side).
+node_modules
+.next
+.next-desktop
+.next-shots
+.env*

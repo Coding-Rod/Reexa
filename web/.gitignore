@@ -42,3 +42,6 @@ next-env.d.ts
 /.next-desktop/
 .env*.local
 /.next-shots/
+
+# Verbatim course slide text (copyright): deployed, never committed
+public/content/**/passages.json
